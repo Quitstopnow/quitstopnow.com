@@ -1,0 +1,41 @@
+From 7d76318f9c138c152a18a78a42ad7e365ac3efd4 Mon Sep 17 00:00:00 2001
+From: Axel Rutz <axel.rutz@clever-systems.net>
+Date: Fri, 11 Apr 2014 17:10:08 +0200
+Subject: [PATCH] Issue #2218119 by Voloda86: Only one billing or shipping
+ address shown in address book tab for authentificated user.
+
+---
+ .../views/commerce_addressbook.views_default.inc   |   10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/includes/views/commerce_addressbook.views_default.inc b/includes/views/commerce_addressbook.views_default.inc
+index e4a9da5..0c5aa1d 100644
+--- a/includes/views/commerce_addressbook.views_default.inc
++++ b/includes/views/commerce_addressbook.views_default.inc
+@@ -44,11 +44,6 @@ function commerce_addressbook_views_default_views() {
+   $handler->display->display_options['relationships']['uid']['table'] = 'commerce_customer_profile';
+   $handler->display->display_options['relationships']['uid']['field'] = 'uid';
+   $handler->display->display_options['relationships']['uid']['required'] = 1;
+-  /* Relationship: Addressbook: Profile ID */
+-  $handler->display->display_options['relationships']['profile_id']['id'] = 'profile_id';
+-  $handler->display->display_options['relationships']['profile_id']['table'] = 'commerce_addressbook_defaults';
+-  $handler->display->display_options['relationships']['profile_id']['field'] = 'profile_id';
+-  $handler->display->display_options['relationships']['profile_id']['required'] = 0;
+   /* Field: Commerce Customer Profile: Rendered Commerce Customer profile */
+   $handler->display->display_options['fields']['rendered_entity']['id'] = 'rendered_entity';
+   $handler->display->display_options['fields']['rendered_entity']['table'] = 'views_entity_commerce_customer_profile';
+@@ -106,11 +101,6 @@ function commerce_addressbook_views_default_views() {
+   $handler->display->display_options['filters']['status']['table'] = 'commerce_customer_profile';
+   $handler->display->display_options['filters']['status']['field'] = 'status';
+   $handler->display->display_options['filters']['status']['value'] = '1';
+-  /* Filter criterion: Addressbook: Profile ID */
+-  $handler->display->display_options['filters']['profile_id']['id'] = 'profile_id';
+-  $handler->display->display_options['filters']['profile_id']['table'] = 'commerce_addressbook_defaults';
+-  $handler->display->display_options['filters']['profile_id']['field'] = 'profile_id';
+-  $handler->display->display_options['filters']['profile_id']['operator'] = 'empty';
+   $views['commerce_addressbook'] = $view;
+ 
+   $view = new view;
+-- 
+1.7.9.5
+

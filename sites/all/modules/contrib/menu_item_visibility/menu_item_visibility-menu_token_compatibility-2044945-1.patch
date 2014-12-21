@@ -1,0 +1,27 @@
+diff --git a/menu_item_visibility.module b/menu_item_visibility.module
+index e468220..4e2ec0b 100644
+--- a/menu_item_visibility.module
++++ b/menu_item_visibility.module
+@@ -41,6 +41,22 @@ function menu_item_visibility_translated_menu_link_alter(&$item, $map) {
+ }
+ 
+ /**
++ * Implements hook_module_implements_alter().
++ */
++function menu_item_visibility_module_implements_alter(&$implementations, $hook) {
++
++  if ($hook == 'translated_menu_link_alter') {
++    // Move menu_item_visibility_translated_menu_link_alter() to the end of the
++    // list. This was mainly to deal with menu_token resetting the menu item
++    // access back to what is returned by menu_get_item.
++    $group = $implementations['menu_item_visibility'];
++    unset($implementations['menu_item_visibility']);
++    $implementations['menu_item_visibility'] = $group;
++  }
++
++}
++
++/**
+  * Load all visibility data for a menu link.
+  */
+ function menu_item_visibility_load($mlid) {

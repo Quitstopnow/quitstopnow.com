@@ -1,0 +1,101 @@
+// zoocha-variables.less
+// Core varaiables go in here
+/* BOOTSTRAP OVERRIDES */
+
+//== Typography
+//
+//## Font, line-height, and color for body text, headings, and more.
+
+@font-family-sans-serif:  "Raleway", Helvetica, Arial, sans-serif;
+//** Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`.
+@font-family-base:        @font-family-sans-serif;
+
+@font-size-base:          13px;
+@font-size-large:         ceil((@font-size-base * 1.384)); // ~18px
+@font-size-small:         ceil((@font-size-base * 0.923)); // ~12px
+
+@font-size-h1:            floor((@font-size-base * 6.93)); // ~90px
+@font-size-h2:            floor((@font-size-base * 3.07)); // ~40px
+@font-size-h3:            ceil((@font-size-base * 1.846)); // ~24px
+@font-size-h4:            ceil((@font-size-base * 1.15)); // ~14px
+@font-size-h5:            @font-size-base;
+@font-size-h6:            ceil((@font-size-base * 0.846)); // ~11px
+
+
+@font-size-h1-md:            floor((@font-size-base * 6.16)); // ~80px
+@font-size-h2-md:            floor((@font-size-base * 6.92)); // ~30px
+@font-size-h3-md:            ceil((@font-size-base * 1.61)); // ~21px
+@font-size-h4-md:            ceil((@font-size-base * 1.15)); // ~14px
+@font-size-h5-md:            @font-size-base;
+@font-size-h6-md:            ceil((@font-size-base * 0.846)); // ~11px
+
+
+@font-size-h1-sm:            floor((@font-size-base * 3.08)); // ~40px
+@font-size-h2-sm:            floor((@font-size-base * 1.77)); // ~23px
+@font-size-h3-sm:            ceil((@font-size-base * 1.61)); // ~21px
+@font-size-h4-sm:            ceil((@font-size-base * 1.076)); // ~14px
+@font-size-h5-sm:            @font-size-base;
+@font-size-h6-sm:            ceil((@font-size-base * 0.846)); // ~11px
+
+/* END: BOOTSTRAP OVERRIDES */
+
+
+/* Colour declarations */
+
+@gray-darker:            #000;
+@gray-dark:              #292929;
+@gray:                   #666666;
+@gray-light:             #999;
+@gray-lighter:           #ccc;
+@black:                  @gray-darker;
+@white:                  #FFFFFF;
+
+
+@section-colour-one: #1c77bc;
+@section-colour-two: #de2e79;
+@section-colour-three: #ff9029;
+@section-colour-four: #f0e425;
+@mid-grey: @gray;
+
+
+//** Global text color on `<body>`.
+@text-color:            @gray-darker;
+//** Global textual link color.
+@link-color:            @gray-darker;
+//** Link hover color set via `darken()` function.
+@link-hover-color:      darken(@link-color, 15%);
+
+/* ----- Paths -----  */
+
+@images: "../images/";
+
+// Icons, images, etc
+@icon-sprite: 		"@{images}common/Icon-sprite.png";
+@arrow-sprite: 		"@{images}common/Arrows-sprite.png";
+@zoocha-logo: 		"@{images}common/Zoocha-logo.png";
+@drupal-logo: 		"@{images}home/Drupal-logo.png";
+@footer-logo: 		"@{images}footer/Footer-logo.jpg";
+@partner-sprite: 	"@{images}/common/Badges.png";
+@envelopes-sprite:  "@{images}/common/envelopes-sprite.png";
+
+/* ----- Navbar -----  */
+
+@nav-background-color: 		@black;
+@nav-hover-color:					@white;
+@nav-active-color:				@white;
+@nav-text-color:					@gray;
+@navbar-collapse-width:		40px;
+@navbar-expand-width:			175px;
+@nav-height-breakpoint: 	640px; /* Hide nav partner icons below this height*/
+
+/* ----- Responsive breakpoints (THESE MUST USE BOOTSTRAP BASE VARIABLES) -----  */
+
+/* Mobile */
+@zoocha-screen-xs-min: @screen-xs-min;
+/* Tablet*/
+@zoocha-screen-sm-min: @screen-sm-min;
+
+/* ----- Mixins -----  */
+.hextorgba(@color, @alpha: 1) {
+  background-color: rgba( red(@color), green(@color), blue(@color), @alpha);
+}
