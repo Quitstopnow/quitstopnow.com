@@ -6,6 +6,12 @@
 @normal:  ~"screen and (min-width: @{screen-md-min})";
 @wide:    ~"screen and (min-width: @{screen-lg-min})";
 
+@media (min-width: 1200px) {
+  .container {
+    width: 970px;
+  }
+}
+
 // Drop shadows.
 .box-shadow(@shadow) {
   -webkit-box-shadow: @shadow;

@@ -1,0 +1,356 @@
+// Insert your styling here.
+#top-user-menu {
+  width: 100%;
+  // border-bottom: 2px solid @pleatz-border-grey;
+  // background-color: @pleatz-bg-grey;
+  padding: 5px 0;
+  .navbar-nav {
+    > li {
+      &.last {
+        a {
+          border: none;
+        }
+      }
+      &.first {
+        @media only screen and (max-width: 839px) { display: none; }
+      }
+      > a {
+        color: #fff;
+        border-right: 1px solid @gray-light;
+        margin: 10px 0;
+        padding: 0 10px;
+        line-height: 11px;
+
+        &:hover{
+          background: none;
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+  .menu.nav.navbar-nav.secondary {
+    padding-right: 15px;
+  }
+  .social-media-icons-top {
+    float: right;
+    ul {
+      li {
+        list-style: none;
+        float: left;
+        margin-left: 4px;
+        a {
+          display: block;
+          padding: 6px;
+          width: 28px;
+          text-align: center;
+          color: #fff;
+        }
+        &.fb-icon {
+          a {
+            background-color: #3a589b;
+          }
+        }
+        &.tw-icon {
+          a {
+            background-color: #598dca;
+          }
+        }
+      }
+    }
+  }
+}
+
+header#topnavbar {
+  #block-views-exp-product-searches-cyo-page {
+    padding-top: 62px;
+    @media only screen and (max-width:691px) {
+      padding-top: 30px;
+    }
+  }
+  .views-exposed-widget.views-submit-button {
+    padding: 0;
+    width: 22%;
+  }
+  button#edit-submit-product-searches-cyo {
+    margin-top: 0;
+    background-color: #7B97AA;
+    border: 1px solid #7B97AA;
+    border-radius: 0;
+    padding: 6px 10px;
+    // width: 100%;
+  }
+  div.search_bar {
+    .form-item-product-search {
+      input.form-control {
+        border-radius: 0;
+        border-color: #7B97AA;
+      }
+    }
+    #edit-product-search-wrapper {
+      padding: 0;
+      width: 74%;
+    }
+  }
+  div.user_basket_bar {
+    width: 275px;
+    float: right;
+    @media only screen and (max-width:839px) {
+      float: left;
+      padding-bottom: 20px;
+    }
+  }
+}
+
+header#navbar{
+  background-color: @qsn-green;
+  border-radius: 0!important;
+  nav {
+    margin: 38px 0 0 0;
+  }
+  .menu-expander {
+    left: 0;
+    &:before {
+      left: 17px;
+    }
+    .menu-split ul {
+      padding: 10px 0 15px 0;
+    }
+  }
+  .phone-us-nav {
+    float: right;
+    padding: 13px;
+    color: #fff;
+    span {
+      // color: @pleatz-bg-orange;
+    }
+  }
+
+  .navbar-collapse {
+    // float: left;
+  }
+
+  .navbar-toggle {
+    float: left;
+    margin: 0;
+    padding: 15px;
+    border-radius: 0;
+    border: 0;
+  }
+
+  &.navbar {
+    min-height: 40px;
+  }
+
+  &.navbar-default {
+    border: none;
+    border-bottom: 6px solid #000;
+
+    .contact-info {
+      display: block;
+      background: url("i/phone-btn.png") 0 0 no-repeat;
+      height: 66px;
+      top: 0;
+      float: left;
+      padding: 0;
+      left: 0;
+      width: 295px;
+      margin: 0 0 0 117px;
+    }
+
+    .navbar-nav {
+      > li {
+        border-right: 1px solid #fff;
+        &.first {
+          margin-left: 130px;
+        }
+        &.last {
+          border: none;
+        }
+        &.active{
+        }
+
+        &.active {
+          a {
+            background-color: @qsn-green-darker;
+          }
+        }
+
+        > a {
+          text-transform: uppercase;
+          font: 13px "PT Sans", sans-serif !important;
+          color: @white;
+          background-color: none!important;
+          padding: 3px 10px;
+          line-height: 11px;
+
+          &:hover {
+            transition: background-color 0.4s ease-in;
+            background-color: @qsn-green-darker;
+          }
+
+          &.active {
+            // border-bottom:4px solid @pleatz-links;
+            // color: @pleatz-bg-green;
+          }
+        }
+
+      }
+    }
+  }
+}
+
+// Menu Expander stuff
+#block-menu-block-4 {
+  background: none repeat scroll 0 0 #f8f8f8;
+  border: 1px solid #000;
+  left: 109px;
+  padding: 100px;
+  position: absolute;
+  top: 43px;
+  z-index: 999;
+}
+
+// Menu navigations
+.menu-expander {
+  background-color: #fff;
+  left: -75px;
+  padding: 10px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.176);
+  position: absolute;
+  z-index: 999;
+  display: none;
+  // margin-top: 15px;
+  width: 328px;
+  border: 1px solid #ccc;
+
+  &:before {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    top: -10px;
+    left: 46%;
+    bottom: auto;
+    border: 10px solid transparent;
+    border-top: 0;
+    border-bottom-color: #fff;
+  }
+
+  img {
+    left: 150px;
+    position: absolute;
+    top: -14px;
+  }
+  .menu-split {
+    color: #a69382;
+    font-size: 13px;
+    padding: 10px 5px;
+    margin: 0;
+    width: 152px;
+    float: left;
+
+    ul {
+      padding: 10px 0 0 0;
+      li {
+        list-style: none!important;
+        margin: 5px 0 0 5px;
+        a {
+          font-size: 12px;
+        }
+      }
+    }
+
+    h3 {
+      // border-bottom:2px solid @pleatz-border-grey;
+      // border-top:2px solid @pleatz-border-grey;
+      font-size: 13px;
+      // color: @pleatz-links;
+      margin: 0;
+      padding: 10px 5px;
+    }
+  }
+}
+
+// Responsive
+
+
+@media only screen and (max-width:992px) {
+
+
+
+.container {
+  width: auto;
+  .phone-us-nav {
+    display: none;
+  }
+}
+
+
+}
+
+@media only screen and (max-width: 767px) {
+
+#top-user-menu {
+  .nav>li {
+    float: left;
+  }
+  .social-media-icons-top {
+    ul {
+      padding: 0;
+    }
+    float: left;
+    margin: 10px 0;
+  }
+}
+
+#user-bar {
+  .row {
+    .col-md-4.col-sm-4 {
+      display: inline-block;
+      float: left;
+      padding-bottom: 20px;
+    }
+  }
+}
+
+
+
+
+}
+
+@media only screen and (max-width: 839px) {
+
+header#topnavbar {
+  #user-bar-logo {
+    width: 50%;
+  }
+  .col-md-4.col-sm-4.search_bar {
+    width: 50%;
+    #block-views-exp-product-searches-cyo-page {
+      padding-top: 26px;
+    }
+  }
+  .col-md-4.col-sm-4.user_basket_bar {
+    width: 50%;
+  }
+}
+
+}
+
+
+@media only screen and (max-width: 585px) {
+
+header#topnavbar {
+  #user-bar-logo {
+    width: 100%;
+  }
+  .col-md-4.col-sm-4.search_bar {
+    width: 100%;
+  }
+  .col-md-4.col-sm-4.user_basket_bar {
+    width: 100%;
+  }
+}
+
+}
+
+
