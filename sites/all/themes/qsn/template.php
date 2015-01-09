@@ -4,6 +4,16 @@
  * @file
  * template.php
  */
+// Pleatz Preprocess Node
+function qsn_preprocess_node(&$variables) {
+  global $user;
+  // dpm($variables);
+  // if($variables['type'] == 'webform'){
+  //   if($variables['webform_block'] === TRUE){
+  //     $variables['title'] = false;
+  //   }
+  // }
+}
 
 // QSN Preprocess Page
 function qsn_preprocess_page(&$variables) {

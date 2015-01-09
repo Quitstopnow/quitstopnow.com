@@ -1,0 +1,4 @@
+name = QSN Tweaks
+description = QSN Tweaks - all code for all tweaks
+package = qsn
+core = 7.x

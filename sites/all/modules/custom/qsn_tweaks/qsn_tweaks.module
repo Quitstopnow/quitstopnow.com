@@ -1,0 +1,70 @@
+<?php
+
+/**
+ * Scheduler will call this function to email all users who's orders were
+ * completed 7 days ago to ask them to review their products.
+ */
+
+function qsn_tweaks_form_alter(&$form, &$form_state, $form_id){
+  if($form_id == 'webform_client_form_13'){
+    $form['submitted']['email']['#attributes']['placeholder'] = array('your.address@email.com');
+  }
+}
+
+// /**
+// * Implements hook_theme_registry_alter().
+// */
+// function pleatz_tweaks_theme_registry_alter(&$theme_registry) {
+//   // Remove cart block total label & add cart link on item.
+//   $theme_registry['commerce_line_item_summary']['path'] = drupal_get_path('module', 'pleatz_tweaks') . '/theme';
+//   $theme_registry['commerce_line_item_summary']['template'] = 'commerce-line-item-summary';
+// }
+
+// /**
+// * Implements hook_preprocess_HOOK().
+// * Link cart block items to cart.
+// */
+// function pleatz_tweaks_preprocess_commerce_line_item_summary(&$variable) {
+//   $variable['cart_items'] = l($variable['quantity'], 'cart', array('attributes' => array('class' => array('line-item-quantity'))));
+// }
+
+/**
+* Implements hook_entity_info_alter().
+*/
+// function pleatz_tweaks_entity_info_alter(&$entity_info) {
+//   $entity_info['node']['view modes']['pleatz_search_result'] = array(
+//     'label' => t('Pleatz Search Result'),
+//     'custom settings' => TRUE,
+//   );
+// }
+
+// // Custom rules actions for pleatz
+// function pleatz_tweaks_rules_action_info() {
+//   $actions['pleatz_allocate_orders_to_suppliers'] = array(
+//     'label' => t('Pleatz allocate orders to suppliers'),
+//     'parameter' => array(
+//       'commerce_order' => array(
+//         'type' => 'commerce_order',
+//         'label' => t('orders'),
+//       ),
+//     ),
+//     'group' => t('pleatz - actions'),
+//     'callbacks' => array(
+//       'execute' => 'pleatz_allocate_orders_to_suppliers',
+//     ),
+//     'provides' => array(
+//       'suppliers_info' => array(
+//         'label' => t('Suppliers'),
+//         'type' => 'list',
+//       ),
+//     ),
+//   );
+//   return $actions;
+// }
+
+
+
+
+
+
+
