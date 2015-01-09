@@ -6968,7 +6968,7 @@ header#navbar.navbar-default .navbar-nav > li > a {
   text-transform: uppercase;
   color: #ffffff;
   background-color: none!important;
-  padding: 3px 10px;
+  padding: 5px 10px;
   line-height: 11px;
 }
 header#navbar.navbar-default .navbar-nav > li > a:hover {
