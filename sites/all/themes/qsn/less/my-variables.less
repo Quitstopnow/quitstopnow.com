@@ -6,7 +6,9 @@
 //
 //## Font, line-height, and color for body text, headings, and more.
 
-@font-family-sans-serif:  "Raleway", Helvetica, Arial, sans-serif;
+// @font-family-sans-serif:  "Raleway", Helvetica, Arial, sans-serif;
+@font-family-sans-serif:  "PT Sans", sans-serif !important;
+
 //** Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`.
 @font-family-base:        @font-family-sans-serif;
 
@@ -101,4 +103,8 @@
 /* ----- Mixins -----  */
 .hextorgba(@color, @alpha: 1) {
   background-color: rgba( red(@color), green(@color), blue(@color), @alpha);
+}
+
+.tt{
+  text-transform: uppercase;
 }

@@ -164,6 +164,13 @@
 
   </div>
 </div>
-<footer class="footer container">
-  <?php print render($page['footer']); ?>
+<footer class="footer footer-top">
+  <div class="container">
+    <?php print render($page['footer']); ?>
+  </div>
+</footer>
+<footer class="footer footer-below">
+  <div class="container">
+    <?php print render($page['footer_below']); ?>
+  </div>
 </footer>

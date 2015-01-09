@@ -11,6 +11,9 @@
 /* Mobile */
 /* Tablet*/
 /* ----- Mixins -----  */
+.tt {
+  text-transform: uppercase;
+}
 /*! normalize.css v3.0.1 | MIT License | git.io/normalize */
 html {
   font-family: sans-serif;
@@ -278,7 +281,7 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 body {
-  font-family: "Raleway", Helvetica, Arial, sans-serif;
+  font-family: "PT Sans", sans-serif !important;
   font-size: 13px;
   line-height: 1.42857143;
   color: #000000;
@@ -6940,7 +6943,14 @@ header#navbar.navbar-default {
 }
 header#navbar.navbar-default .contact-info {
   display: block;
-  background: url("i/phone-btn.png") center 10px no-repeat !important;
+  background: url("i/phone-btn.png") 0 0 no-repeat;
+  height: 66px;
+  top: 0;
+  float: left;
+  padding: 0;
+  left: 0;
+  width: 295px;
+  margin: 0 0 0 117px;
 }
 header#navbar.navbar-default .navbar-nav > li {
   border-right: 1px solid #fff;
@@ -6956,7 +6966,6 @@ header#navbar.navbar-default .navbar-nav > li.active a {
 }
 header#navbar.navbar-default .navbar-nav > li > a {
   text-transform: uppercase;
-  font: 13px "PT Sans", sans-serif !important;
   color: #ffffff;
   background-color: none!important;
   padding: 3px 10px;
@@ -7074,4 +7083,54 @@ header#navbar.navbar-default .navbar-nav > li > a:hover {
   header#topnavbar .col-md-4.col-sm-4.user_basket_bar {
     width: 100%;
   }
+}
+footer.footer-top {
+  background-color: #333333;
+  color: #d5d5d5;
+}
+footer.footer-top #block-block-1 .block-title {
+  font-size: 20px;
+  border-bottom: 1px solid #fff;
+  text-transform: uppercase;
+}
+footer.footer-top #block-block-1 ul {
+  padding: 0;
+}
+footer.footer-top #block-block-1 ul li {
+  list-style: none;
+}
+footer.footer-top #block-block-1 ul li i {
+  font-size: 13px;
+  margin-right: 10px;
+  width: 10px;
+  text-align: center;
+}
+footer.footer-top #block-block-1 a {
+  color: #fff;
+}
+footer.footer-below {
+  background-color: #3a3a3a;
+  color: #d5d5d5;
+  margin-top: 0!important;
+  border-top: none;
+}
+footer.footer-below a {
+  color: #fff;
+}
+footer.footer-below #block-block-3 ul {
+  float: right;
+  padding: 0;
+}
+footer.footer-below #block-block-3 ul li {
+  list-style: none;
+  float: left;
+}
+footer.footer-below #block-block-3 ul li i {
+  font-size: 37px;
+  margin-right: 7px;
+  text-align: center;
+  color: #fff;
+}
+footer.footer-below #block-block-3 a {
+  color: #fff;
 }
