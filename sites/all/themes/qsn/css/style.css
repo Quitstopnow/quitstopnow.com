@@ -6823,6 +6823,9 @@ table .checkbox input[type="checkbox"] {
 .alert-danger a {
   color: #843534;
 }
+.main-container {
+  padding-bottom: 30px;
+}
 #top-user-menu {
   width: 100%;
   padding: 5px 0;
