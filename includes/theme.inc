@@ -2195,7 +2195,7 @@ function theme_item_list($variables) {
         $data .= theme_item_list(array('items' => $children, 'title' => NULL, 'type' => $type, 'attributes' => $attributes));
       }
       if ($i == 1) {
-        $attributes['class'][] = 'first';
+        $attributes['class'][] = 'firstt';
       }
       if ($i == $num_items) {
         $attributes['class'][] = 'last';

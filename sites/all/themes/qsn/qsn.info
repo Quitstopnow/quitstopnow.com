@@ -11,8 +11,10 @@ base theme = bootstrap
 regions[navigation]     = 'Navigation'
 regions[header]         = 'Top Bar'
 regions[highlighted]    = 'Highlighted'
+regions[home_slider]    = 'Home Slider'
 regions[help]           = 'Help'
 regions[content]        = 'Content'
+regions[content_below]   = 'Content Below'
 regions[sidebar_first]  = 'Primary'
 regions[sidebar_second] = 'Secondary'
 regions[footer]         = 'Footer'
@@ -26,7 +28,7 @@ regions[page_bottom]    = 'Page bottom'
 ;;;;;;;;;;;;;;;;;;;;;
 
 stylesheets[all][] = css/style.css
-
+scripts[] = 'js/qsn.js'
 
 ; For information on choosing the desired method, please read the Drupal
 ; Bootstrap sub-theme "how-to" documentation:

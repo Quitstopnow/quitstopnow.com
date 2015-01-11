@@ -113,7 +113,11 @@
     <?php endif; ?>
   </div>
 </header>
-
+<div class="main-slider">
+  <div class="container">
+      <?php print render($page['home_slider']); ?>
+  </div>
+</div>
 <div class="main-container container">
 
   <header role="banner" id="page-header">
@@ -162,6 +166,11 @@
       </aside>  <!-- /#sidebar-second -->
     <?php endif; ?>
 
+  </div>
+</div>
+<div class="content-below">
+  <div class="container">
+      <?php print render($page['content_below']); ?>
   </div>
 </div>
 <footer class="footer footer-top">

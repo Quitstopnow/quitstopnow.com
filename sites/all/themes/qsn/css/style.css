@@ -6256,6 +6256,7 @@ html.js input.form-autocomplete {
 }
 body {
   position: relative;
+  font-size: 14px;
 }
 body.admin-expanded.admin-vertical.admin-nw .navbar,
 body.admin-expanded.admin-vertical.admin-sw .navbar {
@@ -6909,6 +6910,7 @@ header#topnavbar div.user_basket_bar {
 header#navbar {
   background-color: #9abb30;
   border-radius: 0!important;
+  margin-bottom: 0;
 }
 header#navbar nav {
   margin: 38px 0 0 0;
@@ -6956,7 +6958,7 @@ header#navbar.navbar-default .navbar-nav > li {
   border-right: 1px solid #fff;
 }
 header#navbar.navbar-default .navbar-nav > li.first {
-  margin-left: 130px;
+  margin-left: 120px;
 }
 header#navbar.navbar-default .navbar-nav > li.last {
   border: none;
@@ -7084,9 +7086,77 @@ header#navbar.navbar-default .navbar-nav > li > a:hover {
     width: 100%;
   }
 }
+.main-slider {
+  border-bottom: 7px solid #7bae23;
+}
+.main-slider img {
+  width: 100%;
+  height: auto;
+}
+.content-below {
+  background-color: #9abb30;
+}
+.content-below .region-content-below {
+  background-color: #fff;
+  margin-top: 25px;
+  border-radius: 10px 10px 0 0;
+  padding-bottom: 10px;
+}
+.content-below .region-content-below .field-content ul {
+  padding-left: 0;
+}
+.content-below .region-content-below .field-content ul li {
+  list-style: none;
+  color: #bbb;
+}
+.content-below .region-content-below .field-content ul li .content {
+  position: relative;
+  min-height: 240px;
+}
+.content-below .region-content-below .field-content ul li img {
+  width: 145px;
+  height: auto;
+}
+.content-below .region-content-below .field-content ul li.first h3 {
+  color: #f26522;
+}
+.content-below .region-content-below .field-content ul li.first a {
+  background-color: #f26522;
+}
+.content-below .region-content-below .field-content ul li.last h3 {
+  color: red;
+}
+.content-below .region-content-below .field-content ul li.last a {
+  background-color: red;
+}
+.content-below .region-content-below .field-content ul li h3 {
+  color: #9abb30;
+}
+.content-below .region-content-below .field-content ul li a {
+  background-color: #9abb30;
+}
+.content-below .region-content-below .field-content ul li h3 {
+  font-size: 16px;
+}
+.content-below .region-content-below .field-content ul li .field-name-field-cb-image {
+  float: right;
+}
+.content-below .region-content-below .field-content ul li a {
+  width: 100%;
+  text-align: center;
+  border-radius: 5px;
+  color: #fff;
+  padding: 5px 25px 5px 10px;
+  display: block;
+  clear: both;
+  position: absolute;
+  bottom: 15px;
+}
 footer.footer-top {
   background-color: #333333;
   color: #d5d5d5;
+  border-top: none!important;
+  margin-top: 0!important;
 }
 footer.footer-top #block-block-1 .block-title,
 footer.footer-top #block-webform-client-block-13 .block-title,
