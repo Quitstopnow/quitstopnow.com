@@ -6,8 +6,16 @@
       if($('.view-homepage-bottom-3').length){
         qsn.setIconsOnBottom3();
       }
-      if($(".qsn-colorbox").length){
-        $(".qsn-colorbox").colorbox({inline:true});
+      if($(".fancybox-media").length){
+        // $(".qsn-colorbox").colorbox({iframe:true, innerWidth:500, innerHeight:409});
+        // console.log(fancybox);
+        $('.fancybox-media').fancybox({
+          openEffect  : 'none',
+          closeEffect : 'none',
+          helpers : {
+            media : {}
+          }
+        });
       }
     },
 

@@ -21,7 +21,7 @@ function qsn_preprocess_node(&$variables) {
           'html' => true,
           'external' => true,
           'attributes' => array(
-            'class' => array('qsn-colorbox'),
+            'class' => array('fancybox-media'),
           ),
         ));
         $content_blocks .= '</div>';
