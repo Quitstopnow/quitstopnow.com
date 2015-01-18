@@ -7140,6 +7140,9 @@ header#navbar.navbar-default .navbar-nav > li > a:hover {
   margin: 0;
   padding: 0;
 }
+.page-node-3 .field-collection-container {
+  padding: 6px 0 18px;
+}
 .page-node-3 .field-collection-container .field-name-field-cb-image {
   float: left;
   padding-right: 30px;
