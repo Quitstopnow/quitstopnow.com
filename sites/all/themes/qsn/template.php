@@ -7,12 +7,29 @@
 // Pleatz Preprocess Node
 function qsn_preprocess_node(&$variables) {
   global $user;
-  // dpm($variables);
-  // if($variables['type'] == 'webform'){
-  //   if($variables['webform_block'] === TRUE){
-  //     $variables['title'] = false;
-  //   }
-  // }
+  if($variables['view_mode'] == 'full'){
+    if($variables['nid'] == 10){ // My Story
+      $variables['title'] = false;
+      $fcw = entity_metadata_wrapper('node', $variables['nid']);
+      $content_blocks = '<div class="my-story-container">';
+      foreach ($fcw->field_content_blocks->getIterator() as $key => $value) {
+        $content_blocks .= '<div class="col-md-6 col-sm-6">';
+        $img_display = $value->field_cb_image->value();
+        $link_display = $value->field_cb_content->value();
+        $img_show = theme('image_style', array('style_name'=>'my_story_imgs', 'path'=>$img_display['uri']));
+        $content_blocks .= l($img_show, $link_display['value'], array(
+          'html' => true,
+          'external' => true,
+          'attributes' => array(
+            'class' => array('qsn-colorbox'),
+          ),
+        ));
+        $content_blocks .= '</div>';
+      }
+      $content_blocks .= '</div>';
+      $variables['content_blocks'] = $content_blocks;
+    }
+  }
 }
 
 // QSN Preprocess Page
@@ -24,10 +41,63 @@ function qsn_preprocess_page(&$variables) {
   $variables['content_below'] = $variables['page']['content_below'];
   $variables['footer_below'] = $variables['page']['footer_below'];
 
-  if(is_numeric(arg(1)) && (arg(1) == 1)){
+  if(is_numeric(arg(1)) && arg(1) == 1){
     drupal_set_title('');
     $variables['home_slider'] = $variables['page']['home_slider'];
   }
+
+  $variables['social_icons'] = '<ul class="unstyled">
+    <li>
+      <a class="social-wrapper facebook" href="https://www.facebook.com/quitstopnow?fref=ts" target="_blank">
+        <span class="social-icon">
+          <i class="fa fa-facebook"></i>
+        </span>
+        <span class="social-title">Follow via Facebook
+        </span>
+      </a>
+    </li>
+
+    <li>
+      <a class="social-wrapper twitter" href="https://twitter.com/Quit_Stop_Now" target="_blank">
+        <span class="social-icon">
+          <i class="fa fa-twitter"></i>
+        </span>
+        <span class="social-title">Follow via Twitter
+        </span>
+      </a>
+    </li>
+
+    <li>
+      <a class="social-wrapper google" href="https://plus.google.com/u/0/b/118072083418495022549/118072083418495022549/posts/p/pub" target="_blank">
+        <span class="social-icon">
+          <i class="fa fa-google-plus"></i>
+        </span>
+        <span class="social-title">Follow via Google Plus
+        </span>
+      </a>
+    </li>
+
+    <li>
+      <a class="social-wrapper youtube" href="https://www.youtube.com/channel/UCV1VMkHN_pdUsH8UCOsLyrQ/feed?view_as=public" target="_blank">
+        <span class="social-icon">
+          <i class="fa fa-youtube"></i>
+        </span>
+        <span class="social-title">Follow via Youtube
+        </span>
+      </a>
+    </li>
+
+    <li class="hide">
+      <a class="social-wrapper cart" href="/cart">
+        <span class="social-icon">
+          <i class="icon-shopping-cart"></i>
+        </span>
+        <span class="social-title">Cart (<span id="social-cart-num">0</span>)
+        </span>
+      </a>
+    </li>
+  </ul>';
+
 }
 
 function qsn_item_list($variables){

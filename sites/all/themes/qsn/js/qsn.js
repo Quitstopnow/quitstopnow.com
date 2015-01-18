@@ -6,6 +6,9 @@
       if($('.view-homepage-bottom-3').length){
         qsn.setIconsOnBottom3();
       }
+      if($(".qsn-colorbox").length){
+        $(".qsn-colorbox").colorbox({inline:true});
+      }
     },
 
     setIconsOnBottom3: function(context) {

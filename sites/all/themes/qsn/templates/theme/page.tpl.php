@@ -113,11 +113,16 @@
     <?php endif; ?>
   </div>
 </header>
+
+<?php if (!empty($page['home_slider'])): ?>
 <div class="main-slider">
   <div class="container">
       <?php print render($page['home_slider']); ?>
   </div>
 </div>
+<?php endif; ?>
+
+
 <div class="main-container container">
 
   <header role="banner" id="page-header">
@@ -183,3 +188,7 @@
     <?php print render($page['footer_below']); ?>
   </div>
 </footer>
+
+<section id="social-icons-rhs" class="visible-lg">
+<?php print $social_icons; ?>
+</section>
