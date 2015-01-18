@@ -97,7 +97,7 @@
 
     <?php if (!empty($primary_nav) || !empty($secondary_nav) || !empty($page['navigation'])): ?>
       <div class="navbar-collapse collapse">
-        <h2 class="contact-info text-hide">For more information please call: 1300737 747</h2>
+        <h2 class="contact-info visible-lg text-hide">For more information please call: 1300737 747</h2>
         <nav role="navigation">
           <?php if (!empty($primary_nav)): ?>
             <?php print render($primary_nav); ?>

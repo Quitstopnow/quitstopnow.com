@@ -7064,6 +7064,27 @@ header#navbar.navbar-default .navbar-nav > li > a:hover {
     padding-bottom: 20px;
   }
 }
+header#navbar .navbar-toggle {
+  margin: 25px 0 0 23px;
+}
+.navbar-default .navbar-toggle {
+  margin: 30px 0 0 23px;
+}
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: #fff!important;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: #7bae23;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  /* background-color: #dddddd; */
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  /* background-color: #dddddd; */
+}
 @media only screen and (max-width: 839px) {
   header#topnavbar #user-bar-logo {
     width: 50%;
@@ -7079,6 +7100,15 @@ header#navbar.navbar-default .navbar-nav > li > a:hover {
   }
 }
 @media only screen and (max-width: 585px) {
+  header#navbar.navbar-default .navbar-nav > li > a {
+    padding: 10px;
+  }
+  header#navbar.navbar-default .navbar-nav > li.first {
+    margin-left: 0;
+  }
+  header#navbar nav {
+    margin: 0;
+  }
   header#topnavbar #user-bar-logo {
     width: 100%;
   }

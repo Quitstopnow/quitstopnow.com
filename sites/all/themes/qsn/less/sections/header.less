@@ -310,9 +310,32 @@ header#navbar{
   }
 }
 
+}
 
+header#navbar .navbar-toggle {
+  margin: 25px 0 0 23px;
+}
 
+.navbar-default {
+  .navbar-toggle {
+    margin: 30px 0 0 23px;
+    .icon-bar {
+      background-color: #fff!important;
+    }
 
+    &:hover,
+    &:focus{
+      background-color: @qsn-green-darker;
+    }
+  }
+}
+
+.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+/* background-color: #dddddd; */
+}
+
+.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+/* background-color: #dddddd; */
 }
 
 @media only screen and (max-width: 839px) {
@@ -336,7 +359,15 @@ header#topnavbar {
 
 
 @media only screen and (max-width: 585px) {
-
+  header#navbar.navbar-default .navbar-nav > li > a {
+    padding:10px;
+  }
+  header#navbar.navbar-default .navbar-nav > li.first {
+    margin-left: 0;
+  }
+header#navbar nav {
+  margin:0;
+}
 header#topnavbar {
   #user-bar-logo {
     width: 100%;
@@ -347,6 +378,7 @@ header#topnavbar {
   .col-md-4.col-sm-4.user_basket_bar {
     width: 100%;
   }
+
 }
 
 }
