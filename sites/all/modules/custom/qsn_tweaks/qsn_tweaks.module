@@ -8,6 +8,7 @@
 function qsn_tweaks_form_alter(&$form, &$form_state, $form_id){
   if($form_id == 'webform_client_form_13'){
     $form['submitted']['email']['#attributes']['placeholder'] = array('your.address@email.com');
+    $form['submitted']['fullname']['#attributes']['placeholder'] = array('your name');
   }
 }
 

@@ -7432,6 +7432,16 @@ footer.footer-top #block-webform-client-block-13 .node-webform #edit-submitted-e
   color: #d5d5d5;
   border: 1px solid #ccc;
 }
+footer.footer-top #block-webform-client-block-13 .node-webform #edit-submitted-fullname {
+  background: none;
+  padding: 9px;
+  margin: 5px 0;
+  height: auto;
+  border-radius: 0;
+  font-style: italic;
+  color: #d5d5d5;
+  border: 1px solid #ccc;
+}
 footer.footer-top #block-webform-client-block-13 .node-webform .btn {
   background: none repeat scroll 0 0 #90ab3c !important;
   border: 1px solid #90ab3c !important;
