@@ -37,6 +37,11 @@ function qsn_preprocess_page(&$variables) {
   // unset container class of nav bar
   unset($variables['navbar_classes_array'][1]);
 
+  if(drupal_is_front_page()){
+    $js = '<script type="text/javascript" src="//s3.amazonaws.com/downloads.mailchimp.com/js/signup-forms/popup/embed.js" data-dojo-config="usePlainJson: true, isDebug: false"></script><script type="text/javascript">require(["mojo/signup-forms/Loader"], function(L) { L.start({"baseUrl":"mc.us8.list-manage.com","uuid":"e3d30760e3d6ad306c856f131","lid":"c2666c7a9a"}) })</script>';
+    // drupal_add_js($js, array('type' => 'inline', 'scope' => 'header'));
+  }
+
   // Set up new regions
   $variables['content_below'] = $variables['page']['content_below'];
   $variables['footer_below'] = $variables['page']['footer_below'];

@@ -7284,7 +7284,7 @@ header#navbar .navbar-toggle {
 }
 #social-icons-rhs {
   position: fixed;
-  right: 0;
+  right: -210px;
   top: 40%;
 }
 #social-icons-rhs ul li {
@@ -7305,11 +7305,11 @@ header#navbar .navbar-toggle {
   text-decoration: none;
   width: 255px;
   position: relative;
-  right: -210px;
+  right: 0;
   color: #fff;
 }
 #social-icons-rhs ul li a:hover {
-  right: 0;
+  right: 200px;
   transition: all 0.2s ease-out 0s;
 }
 #social-icons-rhs ul li a.facebook {
