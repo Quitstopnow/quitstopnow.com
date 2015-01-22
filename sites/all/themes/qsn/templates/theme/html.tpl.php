@@ -62,7 +62,22 @@
   <?php } ?>
 </head>
 <body class="<?php print $classes; ?>" <?php print $attributes;?>>
-
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="N9LLUPDJANUC6">
+<table>
+<tr><td><input type="hidden" name="on0" value="plan"></td></tr>
+<tr><td><input type="hidden" name="os0" value ="option_0"></td><td><strong>Instalment plan basic</strong></td></tr>
+<tr><td></td><tr><td></td><td>Number of payments 2</td></tr><tr><td></td><td>
+<table>
+<tr><th align="left">No.</th><th align="left">Due*</th><th align="right">Amount</th></tr>
+<tr><td>1</td><td>At checkout</td>
+<td align="right">$25.00 AUD</td></tr><tr><td>2</td><td>after 2 weeks</td>
+<td align="right">$234.00 AUD</td></tr><tr><td COLSPAN="3" ALIGN="right">Total   $259.00 AUD</td></tr></table></td></tr>
+<tr><td colspan="3"><i>* We calculate payments from the date of checkout.</i></td></tr></table>
+<table><tr><td align=center><i>Sign up for</i></td></tr><tr><td><input type="image" src="https://www.paypalobjects.com/en_US/AU/i/btn/btn_installment_plan_CC_LG.gif" border="0" name="submit" alt="PayPal — The safer, easier way to pay online."></td></tr></table>
+<img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1">
+</form>
   <div id="fb-root"></div>
   <script>(function(d, s, id) {
     var js, fjs = d.getElementsByTagName(s)[0];
