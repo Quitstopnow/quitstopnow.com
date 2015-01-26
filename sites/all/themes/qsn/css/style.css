@@ -7478,3 +7478,49 @@ footer.footer-below #block-block-3 ul li i {
 footer.footer-below #block-block-3 a {
   color: #fff;
 }
+.node-product-display .field-name-commerce-price {
+  font-size: 24px;
+  margin: 0;
+  padding: 0;
+}
+.node-product-display .form-submit {
+  background: none repeat scroll 0 0 #90ab3c !important;
+  border: 1px solid #90ab3c !important;
+  color: #ffffff !important;
+  font-size: 20px;
+  padding: 10px;
+  margin-top: 15px;
+  border-radius: 0;
+  font-weight: normal !important;
+}
+.node-product-display h2 {
+  font-size: 24px;
+}
+.node-product-display .form-item-quantity label {
+  padding-top: 15px;
+  font-weight: normal;
+}
+.node-product-display .form-item-quantity input {
+  width: 150px;
+}
+.node-product-display .field-name-field-product-body p {
+  background: url('i/tick.jpg') 0 0 no-repeat;
+  padding: 4px 0 15px 45px;
+  margin: 10px 0;
+}
+.node-product-display .field-name-field-product-body a {
+  font-weight: bold;
+  color: #9abb30;
+}
+.page-cart .btn {
+  border-radius: 0;
+}
+.page-cart #edit-submit,
+.page-cart #qsn-modal-submit,
+.page-cart #submit-the-modal {
+  background: none repeat scroll 0 0 #90ab3c !important;
+  border: 1px solid #90ab3c !important;
+  color: #ffffff !important;
+  border-radius: 0;
+  font-weight: normal !important;
+}

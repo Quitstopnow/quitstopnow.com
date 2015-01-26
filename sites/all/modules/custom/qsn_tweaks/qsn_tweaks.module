@@ -10,6 +10,87 @@ function qsn_tweaks_form_alter(&$form, &$form_state, $form_id){
     $form['submitted']['email']['#attributes']['placeholder'] = array('your.address@email.com');
     $form['submitted']['fullname']['#attributes']['placeholder'] = array('your name');
   }
+
+  if (strpos($form_id,'commerce_cart_add_to_cart_form') !== false) {
+    $form['submit']['#attributes'] = array('class' => array('col-md-6 col-sm-6'));
+  }
+
+  if($form_id == 'views_form_commerce_cart_form_default'){
+    $form['modal_popup'] = array(
+      '#prefix' => '<div class="modal fade" id="qsnModal" tabindex="-1" role="dialog" aria-labelledby="qsnModalLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="qsnModalLabel">Quit Stop Now - please answer the following before proceeding</h4>
+                      </div>',
+        '#suffix' => '</div>
+                  </div>
+                </div>',
+    );
+
+  $form['modal_popup']['content']['top'] = array(
+    '#prefix' => '<div class="modal-body">',
+    '#suffix' => '</div>',
+  );
+  $form['modal_popup']['content']['top']['q1'] = array(
+    '#title' => t('This is question 1'),
+    '#type' => 'checkboxes',
+    '#options' => array(1 => 'Yes', 0 => 'No'),
+  );
+  $form['modal_popup']['content']['top']['q2'] = array(
+    '#title' => t('This is question 2'),
+    '#type' => 'checkboxes',
+    '#options' => array(1 => 'Yes', 0 => 'No'),
+  );
+  $form['modal_popup']['content']['top']['q3'] = array(
+    '#title' => t('This is question 3'),
+    '#type' => 'checkboxes',
+    '#options' => array(1 => 'Yes', 0 => 'No'),
+  );
+  $form['modal_popup']['content']['top']['q4'] = array(
+    '#title' => t('This is question 4'),
+    '#type' => 'checkboxes',
+    '#options' => array(1 => 'Yes', 0 => 'No'),
+  );
+  $form['modal_popup']['content']['top']['q5'] = array(
+    '#title' => t('This is question 5'),
+    '#type' => 'checkboxes',
+    '#options' => array(1 => 'Yes', 0 => 'No'),
+  );
+  $form['modal_popup']['content']['bottom'] = array(
+    '#prefix' => '<div class="modal-footer">',
+    '#suffix' => '</div>',
+  );
+
+  $form['modal_popup']['content']['bottom']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+    '#attributes' => array('id' => array('submit-the-modal')),
+  );
+
+  $form['actions']['checkout']['#attributes'] = array(
+    'data-toggle' => 'modal',
+    'data-target' => '#qsnModal'
+  );
+  unset($form['actions']['checkout']['#submit']);
+  unset($form['#submit']);
+  $form['actions']['checkout']['#submit'][] = 'qsn_tweaks_checkout_form_submit';
+  $form['#submit'][] = 'qsn_tweaks_checkout_form_submit';
+  // dpm($form);
+
+// <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#qsnModal">
+//   Launch demo modal
+// </button>
+  }
+}
+
+function qsn_tweaks_checkout_form_submit(&$form, &$form_state){
+  // drupal_set_message('hello');
+  // dpm($form_state);
+  if($form_state['values']['q1'][0] == 1){
+
+  }
 }
 
 // /**
