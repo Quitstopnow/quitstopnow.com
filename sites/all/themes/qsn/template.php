@@ -29,6 +29,29 @@ function qsn_preprocess_node(&$variables) {
       $content_blocks .= '</div>';
       $variables['content_blocks'] = $content_blocks;
     }
+    if($variables['nid'] == 6){ // contact us page
+      $js = '<!-- Google Code for Thank You Conversion Page -->
+            <script type="text/javascript">
+            /* <![CDATA[ */
+            var google_conversion_id = 962812187;
+            var google_conversion_language = "en";
+            var google_conversion_format = "1";
+            var google_conversion_color = "009900";
+            var google_conversion_label = "78juCNyf1FcQm7KNywM";
+            var google_remarketing_only = false;
+            /* ]]> */
+            </script>
+            <script type="text/javascript" src="//www.googleadservices.com/pagead/conversion.js">
+            </script>
+            <noscript>
+            <div style="display:inline;">
+            <img height="1" width="1" style="border-style:none;" alt="" src="//www.googleadservices.com/pagead/conversion/962812187/?label=78juCNyf1FcQm7KNywM&amp;guid=ON&amp;script=0"/>
+            </div>
+            </noscript>';
+      drupal_add_js($js,
+        array('type' => 'inline', 'scope' => 'footer', 'weight' => 5)
+      );
+    }
   }
 }
 

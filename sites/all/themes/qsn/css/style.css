@@ -6826,6 +6826,14 @@ table .checkbox input[type="checkbox"] {
 .main-container {
   padding-bottom: 30px;
 }
+/*mobile*/
+@media (max-width: 767px) {
+  #node-1 iframe {
+    width: 100%;
+    height: auto;
+    padding-bottom: 30px;
+  }
+}
 #top-user-menu {
   width: 100%;
   padding: 5px 0;
@@ -7184,6 +7192,9 @@ header#navbar .navbar-toggle {
 .page-node-3 .field-collection-container .field-name-field-cb-image img {
   width: 100%;
   height: auto;
+}
+.page-node-3 .field-collection-container .odd img {
+  padding-bottom: 150px;
 }
 #node-5 .field-name-body p {
   background: url('i/question.jpg') 0 0 no-repeat;

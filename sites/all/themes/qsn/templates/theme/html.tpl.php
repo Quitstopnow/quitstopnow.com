@@ -57,9 +57,6 @@
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
   <?php print $scripts; ?>
-  <?php if (($front = drupal_is_front_page()) == 1){ ?>
-  <script type="text/javascript" src="//s3.amazonaws.com/downloads.mailchimp.com/js/signup-forms/popup/embed.js" data-dojo-config="usePlainJson: true, isDebug: false"></script><script type="text/javascript">require(["mojo/signup-forms/Loader"], function(L) { L.start({"baseUrl":"mc.us8.list-manage.com","uuid":"e3d30760e3d6ad306c856f131","lid":"c2666c7a9a"}) })</script>
-  <?php } ?>
 </head>
 <body class="<?php print $classes; ?>" <?php print $attributes;?>>
   <div id="fb-root"></div>

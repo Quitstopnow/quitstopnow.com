@@ -21,6 +21,7 @@
       hide($content['links']);
       print render($content['body']);
       print $content_blocks;
+      print '<p><em>DISCLAIMER: This program has been effective for these people and may work for you under similar circumstances but we give no guarantee.</em></p>';
     ?>
   </div>
 

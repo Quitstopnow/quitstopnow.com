@@ -34,29 +34,29 @@ function qsn_tweaks_form_alter(&$form, &$form_state, $form_id){
     '#suffix' => '</div>',
   );
   $form['modal_popup']['content']['top']['q1'] = array(
-    '#title' => t('This is question 1'),
+    '#title' => t('Are you under 18 years old?'),
     '#type' => 'checkboxes',
-    '#options' => array(1 => 'Yes', 0 => 'No'),
+    '#options' => array('y' => 'Yes', 'n' => 'No'),
   );
   $form['modal_popup']['content']['top']['q2'] = array(
-    '#title' => t('This is question 2'),
+    '#title' => t('Are you pregnant?'),
     '#type' => 'checkboxes',
-    '#options' => array(1 => 'Yes', 0 => 'No'),
+    '#options' => array('y' => 'Yes', 'n' => 'No'),
   );
   $form['modal_popup']['content']['top']['q3'] = array(
-    '#title' => t('This is question 3'),
+    '#title' => t('Are you breastfeeding?'),
     '#type' => 'checkboxes',
-    '#options' => array(1 => 'Yes', 0 => 'No'),
+    '#options' => array('y' => 'Yes', 'n' => 'No'),
   );
   $form['modal_popup']['content']['top']['q4'] = array(
-    '#title' => t('This is question 4'),
+    '#title' => t('Do you suffer from arterial hypertension? (High level blood pressure 140/90)'),
     '#type' => 'checkboxes',
-    '#options' => array(1 => 'Yes', 0 => 'No'),
+    '#options' => array('y' => 'Yes', 'n' => 'No'),
   );
   $form['modal_popup']['content']['top']['q5'] = array(
-    '#title' => t('This is question 5'),
+    '#title' => t('Do you suffer from advanced atherosclerosis? (also known as arteriosclerotic vascular disease)'),
     '#type' => 'checkboxes',
-    '#options' => array(1 => 'Yes', 0 => 'No'),
+    '#options' => array('y' => 'Yes', 'n' => 'No'),
   );
   $form['modal_popup']['content']['bottom'] = array(
     '#prefix' => '<div class="modal-footer">',
@@ -86,10 +86,27 @@ function qsn_tweaks_form_alter(&$form, &$form_state, $form_id){
 }
 
 function qsn_tweaks_checkout_form_submit(&$form, &$form_state){
-  // drupal_set_message('hello');
-  // dpm($form_state);
-  if($form_state['values']['q1'][0] == 1){
-
+  $bad = 0;
+  if($form_state['values']['q1']['n'] !== 'n'){
+    // drupal
+    $bad++;
+  }
+  if($form_state['values']['q2']['n'] !== 'n'){
+    $bad++;
+  }
+  if($form_state['values']['q3']['n'] !== 'n'){
+    $bad++;
+  }
+  if($form_state['values']['q4']['n'] !== 'n'){
+    $bad++;
+  }
+  if($form_state['values']['q5']['n'] !== 'n'){
+    $bad++;
+  }
+  if($bad > 0){
+    drupal_set_message(t('You can\'t proceed if you have answered any questions YES or failed to answer everything.'), 'warning', FALSE);
+  } else {
+    drupal_goto('checkout');
   }
 }
 
