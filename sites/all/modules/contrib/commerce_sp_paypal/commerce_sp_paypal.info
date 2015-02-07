@@ -1,0 +1,30 @@
+name = Commerce SP Paypal
+description = Adds Paypal recurrent payment support for commerce subscription products.
+core = 7.x
+package = Commerce (contrib)
+php = 5.2.4
+dependencies[] = commerce_checkout
+dependencies[] = commerce_paypal
+dependencies[] = commerce_sp
+dependencies[] = entityreference
+dependencies[] = features
+dependencies[] = list
+dependencies[] = message
+dependencies[] = number
+dependencies[] = strongarm
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:1
+features[field][] = commerce_order-commerce_order-field_commerce_sp_paypal
+features[field][] = commerce_product-commerce_sp_subscription-field_commerce_sp_paypal
+features[field][] = commerce_product-commerce_sp_subscription-field_commerce_sp_paypal_periods
+features[field][] = message-commerce_sp_paypal_ipn_log-field_commerce_sp_paypal_ipn
+features[field][] = message-commerce_sp_paypal_ipn_log-field_commerce_sp_paypal_ipn_t
+features[field][] = message-commerce_sp_paypal_ipn_log-field_commerce_sp_paypal_order
+features[message_type][] = commerce_sp_paypal_ipn_log
+
+; Information added by drupal.org packaging script on 2013-10-24
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "commerce_sp_paypal"
+datestamp = "1382618627"
+

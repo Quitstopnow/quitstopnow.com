@@ -1,0 +1,661 @@
+<?php
+
+include_once('commerce_sp_paypal.features.inc');
+
+DEFINE('COMMERCE_SP_PAYPAL_QUEUE_NAME', 'commerce_sp_paypal_queue');
+
+/**
+ * Checks whether the given order should be recurring.
+ *
+ * In this case the order need to contain exactly one product of type sp with
+ * recurring set to true. If we would mix up orders with multiple products, we
+ * would get difficulties with which amount to regularly charge customers.
+ *
+ * @param $order
+ *   The commerce order to check.
+ *
+ * @return
+ *   TRUE if the order contains exactly one recurring sp, else FALSE.
+ */
+function commerce_sp_paypal_order_contains_recurrent_product($order) {
+  $is_recurrent = FALSE;
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+  foreach ($order_wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+    if ($line_item_wrapper->type->value() == 'product') {
+      $product_wrapper = $line_item_wrapper->commerce_product;
+      if (!commerce_sp_paypal_is_recurrent_product($product_wrapper->value())) {
+        // Return if there is a different product.
+        return FALSE;
+      }
+      else {
+        // There is at least one recurrent product.
+        $is_recurrent = TRUE;
+      }
+    }
+  }
+  return $is_recurrent;
+}
+
+/**
+ * Checks whether the commerce product is a recurrent subscription product.
+ *
+ * Field 'commerce_sp_paypal' needs to be activated on the product.
+ *
+ * @param $product
+ *   The commerce product to check.
+ *
+ * @return
+ *   TRUE if recurrent sp, else FALSE.
+ */
+function commerce_sp_paypal_is_recurrent_product($product) {
+  if ($product->type == 'commerce_sp_subscription' && isset($product->field_commerce_sp_paypal[LANGUAGE_NONE][0]['value']) && $product->field_commerce_sp_paypal[LANGUAGE_NONE][0]['value']) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Handles the initial signup.
+ *
+ * A correct signup always involves two IPNs, subscr_signup and payment. As
+ * there is no fixed order how these incoming requests are handled, the first
+ * request sets a checkbox on the order and the second activates the recurring
+ * option on the user. If we don't do it this way we might end up with duplicate
+ * orders or incomplete information.
+ * Furthermore it always loads the uncached version of the order, as the other
+ * IPN request, which might run in parallel, has changed something on the order.
+ *
+ * @see commerce_sp_paypal_commerce_paypal_ipn_process().
+ */
+function commerce_sp_paypal_signup($order) {
+  // Lock the function execution so that the second IPN does not mess up things.
+  if (!lock_acquire(__FUNCTION__)) {
+    // Another request got the lock, wait for it to finish.
+    lock_wait(__FUNCTION__);
+  }
+  // Reset the internal cache and load the latest one. As the subscr_signup
+  // and subscr_payment may work in parallel, we have to ensure to not destroy
+  // the work of the other process.
+  $orders = commerce_order_load_multiple(array($order->order_id), array(), TRUE);
+  if ($orders) {
+    $current_order = reset($orders);
+    $account = user_load($current_order->uid, TRUE);
+    if ($account->uid && !commerce_sp_paypal_user_is_recurrent($account) && isset($current_order->field_commerce_sp_paypal[LANGUAGE_NONE][0]['value']) && $current_order->field_commerce_sp_paypal[LANGUAGE_NONE][0]['value'] == 1) {
+      commerce_sp_paypal_user_set_recurrent($account);
+    }
+    if (!isset($current_order->field_commerce_sp_paypal[LANGUAGE_NONE][0]['value']) || $current_order->field_commerce_sp_paypal[LANGUAGE_NONE][0]['value'] == 0) {
+      commerce_sp_paypal_order_set_recurrent($current_order);
+    }
+  }
+  lock_release(__FUNCTION__);
+}
+
+/**
+ * Sets a checkox on the user account to indicate the user has a recurrent
+ * billing that is managed by paypal.
+ *
+ * @param $account
+ *   The user account.
+ */
+function commerce_sp_paypal_user_set_recurrent($account) {
+  $account->field_commerce_sp_skip_expire[LANGUAGE_NONE][0]['value'] = 1;
+  user_save($account);
+}
+
+/**
+ * Sets a checkox on the order to indicate it is a recurring order. This has
+ * been additionally introduced, since adding this information on the user
+ * account on subscr_signup is not enough as the user might be automatically
+ * created druing the checkout process and thus misses this information in some
+ * circumstances.
+ *
+ * @param $order
+ *   The commerce order.
+ *
+ * @see commerce_sp_paypal_commerce_paypal_ipn_process() subscr_signup
+ */
+function commerce_sp_paypal_order_set_recurrent($order) {
+  $order->field_commerce_sp_paypal[LANGUAGE_NONE][0]['value'] = 1;
+  commerce_order_save($order);
+}
+
+/**
+ * Unsets the skip automatic expiration checkbox on the user to indicate that
+ * the user does not have a recurrent payment any more.
+ *
+ * This change will invoke the Commerce SP rules and the expiration component
+ * will be scheduled according to the subscription date. So, we do not stop
+ * the subscription immediately and let the original Commerce SP system handle
+ * the rest.
+ *
+ * @param $order
+ *   The commerce order.
+ */
+function commerce_sp_paypal_user_clear_recurrent($account) {
+  $account->field_commerce_sp_skip_expire[LANGUAGE_NONE][0]['value'] = 0;
+  user_save($account);
+}
+
+
+/**
+ * Checks whether the user has an active recurrent billing.
+ *
+ * @param $account
+ *   The user to check
+ *
+ * @return
+ *  TRUE if recurrent, else FALSE.
+ */
+function commerce_sp_paypal_user_is_recurrent($account) {
+  if (!empty($account->field_commerce_sp_validity) && isset($account->field_commerce_sp_skip_expire[LANGUAGE_NONE][0]['value']) && $account->field_commerce_sp_skip_expire[LANGUAGE_NONE][0]['value']) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Stops subscription after the system has been notified about the cancellation.
+ *
+ * @param $account
+ *   The user for whom the subscription should be cancelled.
+ */
+function commerce_sp_paypal_stop_subscription($account) {
+  commerce_sp_paypal_user_clear_recurrent($account);
+}
+
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function commerce_sp_paypal_cron_queue_info() {
+  $queues = array();
+  $queues[COMMERCE_SP_PAYPAL_QUEUE_NAME] = array(
+    'worker callback' => 'commerce_sp_paypal_renew_subscription_queue_execute',
+    'time' => 120,
+  );
+  return $queues;
+}
+
+/**
+ * Renew subscription after the system has been notified about a new billing.
+ *
+ * The execution of this is queued, as PayPal might send multiple subscription
+ * renewals at once which can cause some strange bugs.
+ *
+ * @param $order
+ *   The commerce order which has initially been generated by the system for the
+ *   first payment.
+ * @param $ipn
+ *   The PayPal IPN used to set the correct transaction.
+ */
+function commerce_sp_paypal_renew_subscription($order, $ipn) {
+  $queue = DrupalQueue::get(COMMERCE_SP_PAYPAL_QUEUE_NAME);
+  $queue->createItem(array('order' => $order, 'ipn' => $ipn));
+}
+
+/**
+ * Helper function that executes a specific item from our queue and clones the
+ * order.
+ *
+ * @param $item
+ *   The queue item including the order and the PayPal IPN.
+ */
+function commerce_sp_paypal_renew_subscription_queue_execute($item) {
+  // Legacy code as we changed the queue item from the order object to an array
+  // containing the order and the IPN.
+  $ipn = "";
+  if (is_object($item)) {
+    $order = $item;
+  }
+  elseif (is_array($item) && count($item) == 2) {
+    $order = $item['order'];
+    $ipn = $item['ipn'];
+  }
+  commerce_sp_paypal_clone_order($order, $ipn);
+}
+
+/**
+ * Creates a new order based on the information given in $master_order.
+ *
+ * Billing address and line items get cloned. Furthermore the order completion
+ * is invoked so that Rules action can react upon it (e.g. add subscription
+ * time).
+ *
+ * @param $order
+ *   The commerce order to clone.
+ * @param $ipn
+ *   The PayPal IPN used to set the correct transaction.
+ *
+ * @return
+ *   The cloned commerce order.
+ */
+function commerce_sp_paypal_clone_order($master_order, $ipn = "") {
+  // Create a new order
+  $new_order = commerce_order_new($master_order->uid, 'pending');
+
+  // Clone the billing address.
+  $new_order->commerce_customer_billing = $master_order->commerce_customer_billing;
+
+  // Save it so it gets an order ID and return the full object.
+  commerce_order_save($new_order);
+
+  // Wrap the order for easy access to field data.
+  $new_order_wrapper = entity_metadata_wrapper('commerce_order', $new_order);
+
+  // Wrap the master order for easy access to field data.
+  $master_order_wrapper = entity_metadata_wrapper('commerce_order', $master_order);
+  foreach ($master_order_wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+    if ($line_item_wrapper->type->value() == 'product') {
+      $new_line_item = commerce_product_line_item_new($line_item_wrapper->commerce_product->value(), $line_item_wrapper->quantity->value(), $new_order->order_id);
+    }
+    elseif ($line_item_wrapper->type->value() == 'coupon' && function_exists("commerce_coupon_line_item_new")) {
+      // We can programatically reuse the coupon and thus ensure the same price.
+      $coupon = entity_load_single('commerce_coupon', $line_item_wrapper->commerce_coupon_reference->value());
+      if ($coupon) {
+        $new_line_item = commerce_coupon_line_item_new($coupon, $new_order->order_id);
+      }
+    }
+    if (isset($new_line_item)) {
+      // Ensure the same price on the line items. The order total will always
+      // be calculated base on this information.
+      $new_line_item->commerce_unit_price = $line_item_wrapper->value()->commerce_unit_price;
+      commerce_line_item_save($new_line_item);
+      $new_order_wrapper->commerce_line_items[] = $new_line_item;
+      unset($new_line_item);
+    }
+  }
+  // Save the updated order.
+  commerce_order_save($new_order);
+
+  // Move the transaction from the master order to the new order so that we have
+  // a correct order balance.
+  if (isset($ipn['transaction_id'])) {
+    $transaction = commerce_payment_transaction_load($ipn['transaction_id']);
+    if ($transaction) {
+      $transaction->order_id = $new_order->order_id;
+      commerce_payment_transaction_save($transaction);
+    }
+  }
+
+  // Invoke the commerce_checkout_complete Rules event.
+  commerce_checkout_complete($new_order);
+
+
+  // Manually stop the subscription for orders with a limited amount of payment
+  // periods, as we cannot rely on PayPal's EOT command for this use case.
+  // EOT is sent at the same time as (or before) the last payment information,
+  // and as the last order is created in a cron queue, the subscription might
+  // has ended before the last order has successfully been created.
+  $subscription_periods = commerce_sp_paypal_order_get_periods_limit($master_order);
+  if ($master_order->uid && $subscription_periods != 0) {
+    $payment_count = commerce_sp_paypal_get_payment_count($master_order);
+    if ($payment_count >= $subscription_periods) {
+      $account = user_load($master_order->uid);
+      if ($account) {
+        commerce_sp_paypal_stop_subscription($account);
+      }
+    }
+  }
+
+  return $new_order;
+}
+
+/**
+ * Implements hook_commerce_paypal_ipn_process().
+ */
+function commerce_sp_paypal_commerce_paypal_ipn_process($order, $payment_method, $ipn) {
+  // Allways log the IPN, maybe something goes wrong within Drupal and we need
+  // the full history.
+  commerce_sp_paypal_log_ipn($order, $ipn);
+
+  if (!$order || !commerce_sp_paypal_order_contains_recurrent_product($order)) {
+    return;
+  }
+
+  switch ($ipn['txn_type']) {
+    case 'subscr_signup': // Subscription started.
+    case 'recurring_payment_profile_created': // Recurring payment profile created.
+      // The subscr_signup and subscr_payment request can arrive at the same
+      // time and are sometimes handled in mixed-up order, so we have to cover
+      // both cases (especially important if user accounts are created on the
+      // fly).
+      // Case 1: subscr_payment -> subscr_signup: directly mark the user as
+      //  recurring.
+      // Case 2: subscr_signup -> subscr_payment: add info to order and sync it
+      //  back to the user once the order has been paid.
+      commerce_sp_paypal_signup($order);
+      break;
+
+    case 'subscr_cancel': // subscription account cancellation:
+    case 'subscr_eot': // subscription's end-of-term.
+    case 'recurring_payment_expired': // Recurring payment expired
+      $account = user_load($order->uid);
+      if ($account->uid) {
+        // Only stop the subscription if the IPN refers to the last recurring
+        // master order. This is only relevant if it happens that the user
+        // has more recurring profile, but the cancellation of older profiles
+        // should not destroy active ones.
+        $master_order = commerce_sp_paypal_get_paypal_master_order($account);
+
+        // Skip EOT command for orders with limited billing cycles. EOT is
+        // manually handled on the last order creation.
+        // @see commerce_sp_paypal_clone_order().
+        $subscription_periods = commerce_sp_paypal_order_get_periods_limit($master_order);
+        if ($ipn['txn_type'] == 'subscr_eot' && $master_order && $subscription_periods != 0) {
+          break;
+        }
+        if (!$master_order || $master_order->order_id == $order->order_id) {
+          commerce_sp_paypal_stop_subscription($account);
+        }
+      }
+      break;
+
+    case 'subscr_failed': // Subscription payment failed.
+      $account = user_load($order->uid);
+      if ($account->uid) {
+        // See subscr_cancel case.
+        $master_order = commerce_sp_paypal_get_paypal_master_order($account);
+        if (!$master_order || $master_order->order_id == $order->order_id) {
+          // PayPal retries the payment two times. After the second failure, the
+          // subscription ends, but the subscr_eot IPN won't be sent.
+          if (commerce_sp_paypal_double_subscr_failed($order)) {
+            commerce_sp_paypal_stop_subscription($account);
+          }
+        }
+      }
+      break;
+
+    case 'subscr_payment': // subscription payment.
+    case 'recurring_payment': // Recurring payment received.
+      // Renew subscription only if user is marked as recurring and the original
+      // order is not in the payment checkout process anymore (it can happen
+      // that subscr_signup gets called before subscr_payment and we do not want
+      // to duplicate the initial order).
+      // Furthermore we check whether an suspended subscription is going to be
+      // continued.
+      $account = user_load($order->uid);
+      if ($account->uid && $order->status != "checkout_payment" && $ipn['payment_status'] == "Completed") {
+        if (commerce_sp_paypal_user_is_recurrent($account)) {
+          commerce_sp_paypal_renew_subscription($order, $ipn);
+        }
+        elseif (commerce_sp_paypal_suspended_subscr_continued($order, $ipn['subscr_id']))  {
+          commerce_sp_paypal_user_set_recurrent($account);
+          commerce_sp_paypal_renew_subscription($order, $ipn);
+        }
+      }
+      commerce_sp_paypal_signup($order);
+      break;
+  }
+}
+
+/**
+ * Logs IPN to the system using the message module.
+ */
+function commerce_sp_paypal_log_ipn($order, $ipn) {
+  $message = message_create('commerce_sp_paypal_ipn_log', array('uid' => $order->uid));
+  $wrapper = entity_metadata_wrapper('message', $message);
+  if ($order) {
+    $wrapper->field_commerce_sp_paypal_order->set($order);
+  }
+  $wrapper->field_commerce_sp_paypal_ipn_t->set($ipn['txn_type']);
+  $wrapper->field_commerce_sp_paypal_ipn->set(print_r($ipn, TRUE));
+  $wrapper->save();
+}
+
+/**
+ * Helper function that checks if two 'subscr_failed' IPNs have been sent after
+ * each other.
+ *
+ * If so, they account should be canceled.
+ */
+function commerce_sp_paypal_double_subscr_failed($order) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'message')
+    ->entityCondition('bundle', 'commerce_sp_paypal_ipn_log')
+    ->propertyCondition('uid', $order->uid)
+    ->fieldCondition('field_commerce_sp_paypal_order', 'target_id', $order->order_id)
+    ->propertyOrderBy('timestamp', 'DESC')
+    ->range(0, 2);
+  $result = $query->execute();
+  if (isset($result['message'])) {
+    $failed_count = 0;
+    $messages = entity_load('message', array_keys($result['message']));
+    if ($messages) {
+      foreach ($messages as $message) {
+        if (isset($message->field_commerce_sp_paypal_ipn_t[LANGUAGE_NONE][0]['value']) && $message->field_commerce_sp_paypal_ipn_t[LANGUAGE_NONE][0]['value'] == 'subscr_failed') {
+          $failed_count++;
+        }
+      }
+    }
+    if ($failed_count == 2) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Helper function that checks if an already failed subscription is going to be
+ * continued (in this case the subscription was only suspended). For this
+ * purpose we extract the last subscr_failed IPN for this order and check
+ * whether the given subscription id matches with last subscription id.
+ */
+function commerce_sp_paypal_suspended_subscr_continued($order, $subscription_id) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'message')
+    ->entityCondition('bundle', 'commerce_sp_paypal_ipn_log')
+    ->propertyCondition('uid', $order->uid)
+    ->fieldCondition('field_commerce_sp_paypal_order', 'target_id', $order->order_id)
+    ->propertyOrderBy('timestamp', 'DESC')
+    ->range(0, 1);
+  $result = $query->execute();
+  if (isset($result['message'])) {
+    $messages = entity_load('message', array_keys($result['message']));
+    if ($messages) {
+      $message = reset($messages);
+      if (isset($message->field_commerce_sp_paypal_ipn_t[LANGUAGE_NONE][0]['value']) &&
+        $message->field_commerce_sp_paypal_ipn_t[LANGUAGE_NONE][0]['value'] == 'subscr_failed' &&
+        isset($message->field_commerce_sp_paypal_ipn[LANGUAGE_NONE][0]['value'])) {
+
+        // Unfortunately we used print_r to log the complete IPN. Now we have to
+        // use a regex the get the relevant data back.
+        // Possible improvement: store the subscription id in a separate field.
+        $ipn_string = $message->field_commerce_sp_paypal_ipn[LANGUAGE_NONE][0]['value'];
+        $subscr_id_regex = '/\[subscr_id\] \=\> ([a-zA-Z0-9-]+)/';
+        if (preg_match($subscr_id_regex, $ipn_string, $matches)) {
+          $last_subscription_id = $matches[1];
+          if ($last_subscription_id === $subscription_id) {
+            return TRUE;
+          }
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Adds parameters for paypaly recurring billing.
+ */
+function commerce_sp_paypal_form_commerce_paypal_wps_redirect_form_alter(&$form, &$form_state) {
+  $order = $form_state['build_info']['args'][0];
+
+  // A recurrent order only has one recurrent product.
+  if (commerce_sp_paypal_order_contains_recurrent_product($order)) {
+    $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+    foreach ($order_wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+      if ($line_item_wrapper->type->value() == 'product') {
+        $product_wrapper = $line_item_wrapper->commerce_product;
+        $paypal_fields = array(
+          'cmd' =>'_xclick-subscriptions',
+          'item_name' => check_plain($product_wrapper->label()),
+          'a3' => commerce_currency_amount_to_decimal($order_wrapper->commerce_order_total->amount->value(), $order_wrapper->commerce_order_total->currency_code->value()),
+          'p3' => commerce_sp_paypal_product_get_interval_amount_for_paypal($product_wrapper), // interval
+          't3' => commerce_sp_paypal_product_get_interval_period_for_paypal($product_wrapper), // unit
+          'src' => 1, // Set recurring payments until canceled.
+          'sra' => TRUE,
+          'no_note' => TRUE,
+          'modify' => FALSE,
+        );
+        // Limit number of periods if set.
+        $subscription_periods = commerce_sp_paypal_product_get_periods_limit($product_wrapper);
+        if ($subscription_periods) {
+          $paypal_fields['srt'] = $subscription_periods;
+        }
+        foreach ($paypal_fields as $name => $value) {
+          if (!empty($value)) {
+            $form[$name] = array('#type' => 'hidden', '#value' => $value);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Helper function that maps the interval period to the format paypal needs.
+ *
+ * In case no match is given, day is returned as default value.
+ */
+function commerce_sp_paypal_product_get_interval_period_for_paypal($product_wrapper) {
+  $period = $product_wrapper->field_commerce_sp_time->period->value();
+  switch ($period) {
+    case 'day':
+      return 'D';
+    case 'week':
+      return 'W';
+    case 'month':
+      return 'M';
+    case 'year':
+      return 'Y';
+  }
+  return 'D';
+}
+
+/**
+ * Helper function that extracts the interval from the commerce sp interval field.
+ */
+function commerce_sp_paypal_product_get_interval_amount_for_paypal($product_wrapper) {
+  return $product_wrapper->field_commerce_sp_time->interval->value();
+}
+
+/**
+ * Returns a link for canceling the paypal recurring billing.
+ */
+function commerce_sp_paypal_cancel_link($uid = 0, $link_text = "") {
+  global $user;
+  if (!$uid) {
+    $account = $user;
+  }
+  else {
+    $account = user_load($uid);
+  }
+  if (!commerce_sp_paypal_user_is_recurrent($account)) {
+    return;
+  }
+
+  $order = commerce_sp_paypal_get_paypal_master_order($account);
+  if (!$order) {
+    return;
+  }
+  // Get the payment settings.
+  rules_invoke_all('commerce_payment_methods', $order);
+  if (isset($order->data['payment_method'])) {
+    $payment_method = $order->data['payment_method'];
+    if (strstr($payment_method, 'paypal_wps') !== FALSE && isset($order->payment_methods[$payment_method])) {
+      $settings = $order->payment_methods[$payment_method]['settings'];
+      $base_url = commerce_paypal_wps_server_url($settings['server']);
+      $query = array(
+        'cmd' => '_subscr-find',
+        'alias' => $settings['business'],
+      );
+      return l(empty($link_text) ? t('Unsubscribe') : $link_text, $base_url, array('absolute' => TRUE, 'query' => $query));
+    }
+  }
+}
+
+/**
+ * Helper function to retrieve the master order of a user.
+ *
+ * The master order is the order with which the user initially started the
+ * recurrent billing process.
+ */
+function commerce_sp_paypal_get_paypal_master_order($account) {
+  $query = db_select('commerce_order', 'co');
+  $query->fields('co', array('order_id'));
+  $query->condition('co.uid', $account->uid);
+  $query->orderBy('co.created', 'DESC');
+  $query->join('commerce_paypal_ipn', 'cpi', 'cpi.order_id = co.order_id');
+  $query->condition('cpi.txn_type', 'subscr_payment');
+  $order_id = $query->execute()->fetchField();
+
+  if ($order_id) {
+    $order = entity_load_single('commerce_order', $order_id);
+    return $order;
+  }
+}
+
+
+/**
+ * Returns the maximum billing periods for an order. 0 means unlimited.
+ */
+function commerce_sp_paypal_order_get_periods_limit($order) {
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+  foreach ($order_wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+    if ($line_item_wrapper->type->value() == 'product') {
+      return commerce_sp_paypal_product_get_periods_limit($line_item_wrapper->commerce_product);
+    }
+  }
+  return 0;
+}
+
+/**
+ * Returns the maximum billing periods for a product. 0 means unlimited.
+ */
+function commerce_sp_paypal_product_get_periods_limit($product_wrapper) {
+  try {
+    if ($product_wrapper->type->value() == 'commerce_sp_subscription') {
+      $subscription_periods = $product_wrapper->field_commerce_sp_paypal_periods->value();
+      if ($subscription_periods) {
+        return $subscription_periods;
+      }
+    }
+  }
+  catch (EntityMetadataWrapperException $e) {
+    // In case a field is missing, silently return 0.
+  }
+  return 0;
+}
+
+/**
+ * Returns the number of PayPal payments for an order.
+ */
+function commerce_sp_paypal_get_payment_count($master_order) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'message')
+    ->entityCondition('bundle', 'commerce_sp_paypal_ipn_log')
+    ->propertyCondition('uid', $master_order->uid)
+    ->fieldCondition('field_commerce_sp_paypal_order', 'target_id', $master_order->order_id)
+    ->fieldCondition('field_commerce_sp_paypal_ipn_t', 'value', 'subscr_payment');
+  return $query->count()->execute();
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function commerce_sp_paypal_form_user_profile_form_alter(&$form, &$form_state) {
+  // Provide some info on the user account page. Leave some possibilities for
+  // the site admins to change the values, even though they are risiking
+  // inconsistencies between PayPal and Drupal (in some rare circumstances a
+  // manual fix might be necessary).
+  $account = $form['#user'];
+  if (isset($form['field_commerce_sp_validity'][LANGUAGE_NONE]['#suffix']) && commerce_sp_paypal_user_is_recurrent($account)) {
+    $form['field_commerce_sp_validity'][LANGUAGE_NONE]['#suffix'] .= ' <em>' . t('This user has an active PayPal recurring billing profile. It can only be cancelled via PayPal. Manually changing the date will cause inconsistencies between Drupal and PayPal.') . '</em>';
+    $form['field_commerce_sp_skip_expire']['#disabled'] = TRUE;
+  }
+  if (isset($form['field_commerce_sp_skip_expire'][LANGUAGE_NONE]['#description'])) {
+    $form['field_commerce_sp_skip_expire'][LANGUAGE_NONE]['#description'] .= ' <strong>' . t('This checkbox is automatically handled by PayPal.') . '</strong>';
+  }
+}
