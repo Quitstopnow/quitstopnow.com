@@ -78,6 +78,14 @@ function mailchimp_lists_entity_delete($entity, $type) {
  * Returns an email address or FALSE.
  */
 function mailchimp_lists_load_email($instance, $entity, $log_errors = TRUE) {
+  // Load original email if it exists.
+  if (isset($entity->original)) {
+    $email = mailchimp_lists_load_email($instance, $entity->original, $log_errors);
+    if ($email) {
+      return $email;
+    }
+  }
+
   $entity_wrapper = entity_metadata_wrapper($instance['entity_type'], $entity);
   if (!isset($instance['settings']['mergefields']['EMAIL'])) {
     if ($log_errors) {
@@ -89,7 +97,22 @@ function mailchimp_lists_load_email($instance, $entity, $log_errors = TRUE) {
     }
     return FALSE;
   }
-  $email = $entity_wrapper->{$instance['settings']['mergefields']['EMAIL']}->value();
+
+  $property = $instance['settings']['mergefields']['EMAIL'];
+  $elements = explode(':', $property);
+  $object = $entity_wrapper;
+  foreach ($elements as $element) {
+    if ($object instanceof EntityListWrapper) {
+      $object = $object[0];
+    }
+    if (($object->value() === NULL) || (!isset($object->{$element}))) {
+      $object = NULL;
+      break;
+    }
+    $object = $object->{$element};
+  }
+  $email = (isset($object)) ? ($object->value()) : (NULL);
+
   if (valid_email_address($email)) {
     return $email;
   }
@@ -100,7 +123,7 @@ function mailchimp_lists_load_email($instance, $entity, $log_errors = TRUE) {
 
 /**
  * Implements hook_forms().
- *
+ * 
  * This allows each field's subscription-form rendering to have a unique form
  * ID. If this weren't the case, multiple forms getting rendered on a single
  * entity display would have submit button conflicts.
@@ -191,7 +214,7 @@ function mailchimp_lists_subscribe_form_submit($form, &$form_state) {
  * Processor for various list form submissions.
  *
  * Subscription blocks, user settings, and new user creation.
- *
+ * 
  * @array $choices
  *   An array representing the form values selected.
  * @array $instance
@@ -263,7 +286,7 @@ function mailchimp_lists_process_subscribe_form_choices($choices, $instance, $fi
  * This is necessary due to the nature of the field implementation of
  * subscriptions. If we don't do this, we send an update to mailchimp every time
  * an entity is updated.
- *
+ * 
  * returns bool
  */
 function _mailchimp_lists_subscription_has_changed($instance, $field, $entity, $email, $choices) {
@@ -632,7 +655,7 @@ function mailchimp_lists_action_info() {
 
 /**
  * Action function for the Add To Segment action.
- *
+ * 
  * Does the actual subscription work. Builds a queue of segment adds and then
  * intermittently builds a batched API action from the queue and sends to
  * Mailchimp.
