@@ -9,8 +9,31 @@
  */
 function commerce_sp_default_rules_configuration() {
   $items = array();
+  $items['rules_commerce_sp_cancel_subscription_expiration'] = entity_import('rules_config', '{ "rules_commerce_sp_cancel_subscription_expiration" : {
+      "LABEL" : "Cancel subscription expiration",
+      "PLUGIN" : "reaction rule",
+      "TAGS" : [ "commerce_sp" ],
+      "REQUIRES" : [ "rules", "rules_scheduler" ],
+      "ON" : [ "user_update" ],
+      "IF" : [
+        { "NOT data_is" : {
+            "data" : [ "account:field-commerce-sp-skip-expire" ],
+            "value" : [ "account-unchanged:field-commerce-sp-skip-expire" ]
+          }
+        },
+        { "data_is" : { "data" : [ "account:field-commerce-sp-skip-expire" ], "value" : 1 } }
+      ],
+      "DO" : [
+        { "schedule_delete" : {
+            "component" : "rules_commerce_sp_subscription_end",
+            "task" : "expire-[account:uid]"
+          }
+        }
+      ]
+    }
+  }');
   $items['rules_commerce_sp_line_item_is_subscription_product'] = entity_import('rules_config', '{ "rules_commerce_sp_line_item_is_subscription_product" : {
-      "LABEL" : "Line item is subscription product",
+      "LABEL" : "Apply subscription if line item is subscription product",
       "PLUGIN" : "rule",
       "TAGS" : [ "commerce_sp" ],
       "REQUIRES" : [ "rules" ],
@@ -23,8 +46,8 @@ function commerce_sp_default_rules_configuration() {
           }
         },
         { "data_is" : {
-            "data" : [ "line-item:commerce-product:field-commerce-sp-time" ],
-            "op" : "\\u003e",
+            "data" : [ "line-item:commerce-product:field-commerce-sp-time:interval" ],
+            "op" : "\\u003E",
             "value" : "0"
           }
         }
@@ -32,16 +55,86 @@ function commerce_sp_default_rules_configuration() {
       "DO" : [
         { "data_calc" : {
             "USING" : {
-              "input_1" : [ "line-item:commerce-product:field-commerce-sp-time" ],
+              "input_1" : [ "line-item:commerce-product:field-commerce-sp-time:interval" ],
               "op" : "*",
               "input_2" : [ "line-item:quantity" ]
             },
-            "PROVIDE" : { "result" : { "subscription_time" : "Subscription time" } }
+            "PROVIDE" : { "result" : { "subscription_time_number" : "Subscription time number" } }
+          }
+        },
+        { "data_convert" : {
+            "USING" : { "type" : "integer", "value" : [ "subscription-time-number" ] },
+            "PROVIDE" : { "conversion_result" : { "conversion_result" : "Conversion result" } }
           }
         },
         { "component_rules_commerce_sp_subscription_time_to_validity" : {
-            "subscription_time" : [ "subscription_time" ],
+            "subscription_time_number" : [ "conversion-result" ],
+            "subscription_time_period" : [ "line-item:commerce-product:field-commerce-sp-time:period" ],
             "account" : [ "line-item:order:owner" ]
+          }
+        }
+      ]
+    }
+  }');
+  $items['rules_commerce_sp_line_item_subscription_product_apply'] = entity_import('rules_config', '{ "rules_commerce_sp_line_item_subscription_product_apply" : {
+      "LABEL" : "Apply subscription if line item is subscription product",
+      "PLUGIN" : "rule",
+      "TAGS" : [ "commerce_sp" ],
+      "REQUIRES" : [ "rules" ],
+      "USES VARIABLES" : { "line_item" : { "label" : "Line item", "type" : "commerce_line_item" } },
+      "IF" : [
+        { "data_is" : { "data" : [ "line-item:type" ], "value" : "product" } },
+        { "data_is" : {
+            "data" : [ "line-item:commerce-product:type" ],
+            "value" : "commerce_sp_subscription"
+          }
+        },
+        { "data_is" : {
+            "data" : [ "line-item:commerce-product:field-commerce-sp-time:interval" ],
+            "op" : "\\u003E",
+            "value" : "0"
+          }
+        }
+      ],
+      "DO" : [
+        { "data_calc" : {
+            "USING" : {
+              "input_1" : [ "line-item:commerce-product:field-commerce-sp-time:interval" ],
+              "op" : "*",
+              "input_2" : [ "line-item:quantity" ]
+            },
+            "PROVIDE" : { "result" : { "subscription_time_number" : "Subscription time number" } }
+          }
+        },
+        { "data_convert" : {
+            "USING" : { "type" : "integer", "value" : [ "subscription-time-number" ] },
+            "PROVIDE" : { "conversion_result" : { "conversion_result" : "Conversion result" } }
+          }
+        },
+        { "component_rules_commerce_sp_subscription_time_to_validity" : {
+            "subscription_time_number" : [ "conversion-result" ],
+            "subscription_time_period" : [ "line-item:commerce-product:field-commerce-sp-time:period" ],
+            "account" : [ "line-item:order:owner" ]
+          }
+        }
+      ]
+    }
+  }');
+  $items['rules_commerce_sp_schedule_subscription_expiration'] = entity_import('rules_config', '{ "rules_commerce_sp_schedule_subscription_expiration" : {
+      "LABEL" : "Schedule subscription expiration",
+      "PLUGIN" : "rule",
+      "TAGS" : [ "commerce_sp" ],
+      "REQUIRES" : [ "rules", "rules_scheduler" ],
+      "USES VARIABLES" : { "account" : { "label" : "User account", "type" : "user" } },
+      "IF" : [
+        { "data_is_empty" : { "data" : [ "account:field-commerce-sp-skip-expire" ] } }
+      ],
+      "DO" : [
+        { "schedule" : {
+            "component" : "rules_commerce_sp_subscription_end",
+            "date" : [ "account:field-commerce-sp-validity" ],
+            "identifier" : "expire-[account:uid]",
+            "param_user" : [ "account" ]
           }
         }
       ]
@@ -68,6 +161,7 @@ function commerce_sp_default_rules_configuration() {
   $items['rules_commerce_sp_subscription_bought'] = entity_import('rules_config', '{ "rules_commerce_sp_subscription_bought" : {
       "LABEL" : "Apply bought subscription time",
       "PLUGIN" : "reaction rule",
+      "WEIGHT" : "3",
       "TAGS" : [ "commerce_sp" ],
       "REQUIRES" : [ "rules", "commerce_checkout" ],
       "ON" : [ "commerce_checkout_complete" ],
@@ -76,7 +170,7 @@ function commerce_sp_default_rules_configuration() {
             "USING" : { "list" : [ "commerce-order:commerce-line-items" ] },
             "ITEM" : { "list_item" : "Current list item" },
             "DO" : [
-              { "component_rules_commerce_sp_line_item_is_subscription_product" : { "line_item" : [ "list-item" ] } }
+              { "component_rules_commerce_sp_line_item_subscription_product_apply" : { "line_item" : [ "list-item" ] } }
             ]
           }
         }
@@ -91,10 +185,47 @@ function commerce_sp_default_rules_configuration() {
       "USES VARIABLES" : { "user" : { "label" : "User", "type" : "user" } },
       "RULES" : [
         { "RULE" : {
-            "DO" : [ { "data_set" : { "data" : [ "user:field-commerce-sp-validity" ] } } ],
-            "LABEL" : "Clear account validity date"
+            "DO" : [
+              { "data_set" : { "data" : [ "user:field-commerce-sp-validity" ] } },
+              { "data_set" : { "data" : [ "user:field-commerce-sp-skip-expire" ], "value" : 0 } }
+            ],
+            "LABEL" : "Clear subscription settings"
           }
         }
+      ]
+    }
+  }');
+  $items['rules_commerce_sp_subscription_schedule_update'] = entity_import('rules_config', '{ "rules_commerce_sp_subscription_schedule_update" : {
+      "LABEL" : "Update subscription expiration schedule",
+      "PLUGIN" : "reaction rule",
+      "TAGS" : [ "commerce_sp" ],
+      "REQUIRES" : [ "rules" ],
+      "ON" : [ "user_update" ],
+      "IF" : [
+        { "OR" : [
+            { "AND" : [
+                { "NOT data_is" : {
+                    "data" : [ "account:field-commerce-sp-validity" ],
+                    "value" : [ "account-unchanged:field-commerce-sp-validity" ]
+                  }
+                },
+                { "NOT data_is_empty" : { "data" : [ "account:field-commerce-sp-validity" ] } }
+              ]
+            },
+            { "AND" : [
+                { "NOT data_is" : {
+                    "data" : [ "account:field-commerce-sp-skip-expire" ],
+                    "value" : [ "account-unchanged:field-commerce-sp-skip-expire" ]
+                  }
+                },
+                { "data_is_empty" : { "data" : [ "account:field-commerce-sp-skip-expire" ] } }
+              ]
+            }
+          ]
+        }
+      ],
+      "DO" : [
+        { "component_rules_commerce_sp_schedule_subscription_expiration" : { "account" : [ "account" ] } }
       ]
     }
   }');
@@ -110,20 +241,14 @@ function commerce_sp_default_rules_configuration() {
       "LABEL" : "Subscription started (insert)",
       "PLUGIN" : "reaction rule",
       "TAGS" : [ "commerce_sp" ],
-      "REQUIRES" : [ "rules", "rules_scheduler" ],
+      "REQUIRES" : [ "rules" ],
       "ON" : [ "user_insert" ],
       "IF" : [
         { "NOT data_is_empty" : { "data" : [ "account:field-commerce-sp-validity" ] } }
       ],
       "DO" : [
         { "component_rules_commerce_sp_subscription_start" : { "user" : [ "account" ] } },
-        { "schedule" : {
-            "component" : "rules_commerce_sp_subscription_end",
-            "date" : [ "account:field-commerce-sp-validity" ],
-            "identifier" : "expire-[account:uid]",
-            "param_user" : [ "account" ]
-          }
-        }
+        { "component_rules_commerce_sp_schedule_subscription_expiration" : { "account" : [ "account" ] } }
       ]
     }
   }');
@@ -131,7 +256,7 @@ function commerce_sp_default_rules_configuration() {
       "LABEL" : "Subscription started (update)",
       "PLUGIN" : "reaction rule",
       "TAGS" : [ "commerce_sp" ],
-      "REQUIRES" : [ "rules", "rules_scheduler" ],
+      "REQUIRES" : [ "rules" ],
       "ON" : [ "user_update" ],
       "IF" : [
         { "NOT data_is_empty" : { "data" : [ "account:field-commerce-sp-validity" ] } },
@@ -139,13 +264,7 @@ function commerce_sp_default_rules_configuration() {
       ],
       "DO" : [
         { "component_rules_commerce_sp_subscription_start" : { "user" : [ "account" ] } },
-        { "schedule" : {
-            "component" : "rules_commerce_sp_subscription_end",
-            "date" : [ "account:field-commerce-sp-validity" ],
-            "identifier" : "expire-[account:uid]",
-            "param_user" : [ "account" ]
-          }
-        }
+        { "component_rules_commerce_sp_schedule_subscription_expiration" : { "account" : [ "account" ] } }
       ]
     }
   }');
@@ -153,9 +272,10 @@ function commerce_sp_default_rules_configuration() {
       "LABEL" : "Apply bought subscription time to user subscription validity",
       "PLUGIN" : "rule set",
       "TAGS" : [ "commerce_sp" ],
-      "REQUIRES" : [ "rules" ],
+      "REQUIRES" : [ "rules", "interval" ],
       "USES VARIABLES" : {
-        "subscription_time" : { "label" : "Subscription time", "type" : "duration" },
+        "subscription_time_number" : { "label" : "Subscription time number", "type" : "integer" },
+        "subscription_time_period" : { "label" : "Subscription time period", "type" : "token" },
         "account" : { "label" : "User account to apply the time", "type" : "user" }
       },
       "RULES" : [
@@ -170,57 +290,31 @@ function commerce_sp_default_rules_configuration() {
           }
         },
         { "RULE" : {
-            "PROVIDE" : { "result" : { "result" : "Calculation result" } },
+            "PROVIDE" : { "date" : { "date" : "New date" } },
             "DO" : [
-              { "data_calc" : {
+              { "interval_apply" : {
                   "USING" : {
-                    "input_1" : [ "account:field-commerce-sp-validity" ],
-                    "op" : "+",
-                    "input_2" : [ "subscription-time" ]
+                    "interval" : [ "subscription-time-number" ],
+                    "period" : [ "subscription-time-period" ],
+                    "date" : [ "account:field-commerce-sp-validity" ]
                   },
-                  "PROVIDE" : { "result" : { "result" : "Calculation result" } }
+                  "PROVIDE" : { "date" : { "date" : "New date" } }
                 }
               },
               { "data_set" : {
                   "data" : [ "account:field-commerce-sp-validity" ],
-                  "value" : [ "result" ]
+                  "value" : [ "date" ]
                 }
               }
             ],
-            "LABEL" : "Add the time period to the validity date"
-          }
-        }
-      ]
-    }
-  }');
-  $items['rules_commerce_sp_subscription_validity_changed'] = entity_import('rules_config', '{ "rules_commerce_sp_subscription_validity_changed" : {
-      "LABEL" : "Subscription validity changed",
-      "PLUGIN" : "reaction rule",
-      "TAGS" : [ "commerce_sp" ],
-      "REQUIRES" : [ "rules", "rules_scheduler" ],
-      "ON" : [ "user_update" ],
-      "IF" : [
-        { "NOT data_is" : {
-            "data" : [ "account:field-commerce-sp-validity" ],
-            "value" : [ "account-unchanged:field-commerce-sp-validity" ]
-          }
-        },
-        { "NOT data_is_empty" : { "data" : [ "account:field-commerce-sp-validity" ] } },
-        { "NOT data_is_empty" : { "data" : [ "account-unchanged:field-commerce-sp-validity" ] } }
-      ],
-      "DO" : [
-        { "schedule" : {
-            "component" : "rules_commerce_sp_subscription_end",
-            "date" : [ "account:field-commerce-sp-validity" ],
-            "identifier" : "expire-[account:uid]",
-            "param_user" : [ "account" ]
+            "LABEL" : "Add the time interval to the validity date"
           }
         }
       ]
     }
   }');
   $items['rules_commerce_sp_subscription_validity_is_unset'] = entity_import('rules_config', '{ "rules_commerce_sp_subscription_validity_is_unset" : {
-      "LABEL" : "Subscription validity is unset",
+      "LABEL" : "End subscription when validity is unset",
       "PLUGIN" : "reaction rule",
       "TAGS" : [ "commerce_sp" ],
       "REQUIRES" : [ "rules", "rules_scheduler" ],

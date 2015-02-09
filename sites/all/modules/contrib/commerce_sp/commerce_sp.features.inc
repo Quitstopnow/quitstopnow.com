@@ -14,8 +14,18 @@ function commerce_sp_commerce_product_default_types() {
       'name' => 'Subscription',
       'description' => 'A product type for selling subscriptions.',
       'help' => '',
-      'module' => 'commerce_product_ui',
+      'revision' => 1,
     ),
   );
   return $items;
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function commerce_sp_ctools_plugin_api() {
+  list($module, $api) = func_get_args();
+  if ($module == "field_group" && $api == "field_group") {
+    return array("version" => "1");
+  }
 }

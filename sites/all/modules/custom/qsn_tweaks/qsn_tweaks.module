@@ -29,55 +29,55 @@ function qsn_tweaks_form_alter(&$form, &$form_state, $form_id){
                 </div>',
     );
 
-  $form['modal_popup']['content']['top'] = array(
-    '#prefix' => '<div class="modal-body">',
-    '#suffix' => '</div>',
-  );
-  $form['modal_popup']['content']['top']['q1'] = array(
-    '#title' => t('Are you under 18 years old?'),
-    '#type' => 'checkboxes',
-    '#options' => array('y' => 'Yes', 'n' => 'No'),
-  );
-  $form['modal_popup']['content']['top']['q2'] = array(
-    '#title' => t('Are you pregnant?'),
-    '#type' => 'checkboxes',
-    '#options' => array('y' => 'Yes', 'n' => 'No'),
-  );
-  $form['modal_popup']['content']['top']['q3'] = array(
-    '#title' => t('Are you breastfeeding?'),
-    '#type' => 'checkboxes',
-    '#options' => array('y' => 'Yes', 'n' => 'No'),
-  );
-  $form['modal_popup']['content']['top']['q4'] = array(
-    '#title' => t('Do you suffer from arterial hypertension? (High level blood pressure 140/90)'),
-    '#type' => 'checkboxes',
-    '#options' => array('y' => 'Yes', 'n' => 'No'),
-  );
-  $form['modal_popup']['content']['top']['q5'] = array(
-    '#title' => t('Do you suffer from advanced atherosclerosis? (also known as arteriosclerotic vascular disease)'),
-    '#type' => 'checkboxes',
-    '#options' => array('y' => 'Yes', 'n' => 'No'),
-  );
-  $form['modal_popup']['content']['bottom'] = array(
-    '#prefix' => '<div class="modal-footer">',
-    '#suffix' => '</div>',
-  );
+    $form['modal_popup']['content']['top'] = array(
+      '#prefix' => '<div class="modal-body">',
+      '#suffix' => '</div>',
+    );
+    $form['modal_popup']['content']['top']['q1'] = array(
+      '#title' => t('Are you under 18 years old?'),
+      '#type' => 'checkboxes',
+      '#options' => array('y' => 'Yes', 'n' => 'No'),
+    );
+    $form['modal_popup']['content']['top']['q2'] = array(
+      '#title' => t('Are you pregnant?'),
+      '#type' => 'checkboxes',
+      '#options' => array('y' => 'Yes', 'n' => 'No'),
+    );
+    $form['modal_popup']['content']['top']['q3'] = array(
+      '#title' => t('Are you breastfeeding?'),
+      '#type' => 'checkboxes',
+      '#options' => array('y' => 'Yes', 'n' => 'No'),
+    );
+    $form['modal_popup']['content']['top']['q4'] = array(
+      '#title' => t('Do you suffer from arterial hypertension? (High level blood pressure 140/90)'),
+      '#type' => 'checkboxes',
+      '#options' => array('y' => 'Yes', 'n' => 'No'),
+    );
+    $form['modal_popup']['content']['top']['q5'] = array(
+      '#title' => t('Do you suffer from advanced atherosclerosis? (also known as arteriosclerotic vascular disease)'),
+      '#type' => 'checkboxes',
+      '#options' => array('y' => 'Yes', 'n' => 'No'),
+    );
+    $form['modal_popup']['content']['bottom'] = array(
+      '#prefix' => '<div class="modal-footer">',
+      '#suffix' => '</div>',
+    );
 
-  $form['modal_popup']['content']['bottom']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => 'Submit',
-    '#attributes' => array('id' => array('submit-the-modal')),
-  );
+    $form['modal_popup']['content']['bottom']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Submit',
+      '#attributes' => array('id' => array('submit-the-modal')),
+    );
 
-  $form['actions']['checkout']['#attributes'] = array(
-    'data-toggle' => 'modal',
-    'data-target' => '#qsnModal'
-  );
-  unset($form['actions']['checkout']['#submit']);
-  unset($form['#submit']);
-  $form['actions']['checkout']['#submit'][] = 'qsn_tweaks_checkout_form_submit';
-  $form['#submit'][] = 'qsn_tweaks_checkout_form_submit';
-  // dpm($form);
+    $form['actions']['checkout']['#attributes'] = array(
+      'data-toggle' => 'modal',
+      'data-target' => '#qsnModal'
+    );
+    unset($form['actions']['checkout']['#submit']);
+    unset($form['#submit']);
+    $form['actions']['checkout']['#submit'][] = 'qsn_tweaks_checkout_form_submit';
+    $form['#submit'][] = 'qsn_tweaks_checkout_form_submit';
+    // dpm($form);
 
 // <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#qsnModal">
 //   Launch demo modal
