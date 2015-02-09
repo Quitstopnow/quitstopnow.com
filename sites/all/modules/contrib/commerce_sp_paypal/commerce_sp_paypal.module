@@ -173,6 +173,7 @@ function commerce_sp_paypal_cron_queue_info() {
     'worker callback' => 'commerce_sp_paypal_renew_subscription_queue_execute',
     'time' => 120,
   );
+  dpm($queues);
   return $queues;
 }
 
@@ -211,7 +212,8 @@ function commerce_sp_paypal_renew_subscription_queue_execute($item) {
     $order = $item['order'];
     $ipn = $item['ipn'];
   }
-  commerce_sp_paypal_clone_order($order, $ipn);
+  dpm('clone?');
+  // commerce_sp_paypal_clone_order($order, $ipn);
 }
 
 /**
