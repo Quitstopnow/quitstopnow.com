@@ -7494,6 +7494,9 @@ footer.footer-below #block-block-3 a {
   margin: 0;
   padding: 0;
 }
+.node-product-display .form-select {
+  width: 50%;
+}
 .node-product-display .form-submit {
   background: none repeat scroll 0 0 #90ab3c !important;
   border: 1px solid #90ab3c !important;

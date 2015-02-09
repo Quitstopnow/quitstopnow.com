@@ -13,6 +13,8 @@ function qsn_tweaks_form_alter(&$form, &$form_state, $form_id){
 
   if (strpos($form_id,'commerce_cart_add_to_cart_form') !== false) {
     $form['submit']['#attributes'] = array('class' => array('col-md-6 col-sm-6'));
+    $form['product_id']['#attributes'] = array('class' => array('col-md-6 col-sm-6'));
+    // dpm($form, 'here');
   }
 
   if($form_id == 'views_form_commerce_cart_form_default'){
