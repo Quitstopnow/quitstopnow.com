@@ -7127,6 +7127,13 @@ header#navbar .navbar-toggle {
     width: 100%;
   }
 }
+div#toolbar div.toolbar-shortcuts ul {
+  padding: 5px 0 2px 0;
+  height: 34px!important;
+  line-height: 24px;
+  float: left;
+  margin-left: 5px;
+}
 .main-slider {
   border-bottom: 7px solid #7bae23;
 }
