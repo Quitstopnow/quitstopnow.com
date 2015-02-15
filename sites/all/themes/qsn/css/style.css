@@ -7407,6 +7407,11 @@ footer.footer-top {
   border-top: none!important;
   margin-top: 0!important;
 }
+footer.footer-top #block-block-1,
+footer.footer-top #block-webform-client-block-13,
+footer.footer-top #block-block-4 {
+  margin-bottom: 30px;
+}
 footer.footer-top #block-block-1 .block-title,
 footer.footer-top #block-webform-client-block-13 .block-title,
 footer.footer-top #block-block-4 .block-title {
