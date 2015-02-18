@@ -115,6 +115,16 @@ function qsn_preprocess_page(&$variables) {
       </a>
     </li>
 
+     <li>
+      <a class="social-wrapper contactus" href="/contact-us" target="_blank">
+        <span class="social-icon">
+          <i class="fa fa-envelope"></i>
+        </span>
+        <span class="social-title">Contact Us
+        </span>
+      </a>
+    </li>
+
     <li class="hide">
       <a class="social-wrapper cart" href="/cart">
         <span class="social-icon">
