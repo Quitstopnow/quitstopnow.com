@@ -6,6 +6,15 @@
       if($('.view-homepage-bottom-3').length){
         qsn.setIconsOnBottom3();
       }
+
+      if($('#social-icons-rhs a.contactus').length ){
+        $('#social-icons-rhs a.contactus').addClass('contactus-set');
+      }
+
+      $('#social-icons-rhs a.contactus').on('mouseover', function(){
+        $('#social-icons-rhs a.contactus').removeClass('contactus-set');
+      });
+
       if($(".fancybox-media").length){
         // $(".qsn-colorbox").colorbox({iframe:true, innerWidth:500, innerHeight:409});
         // console.log(fancybox);
