@@ -83,8 +83,6 @@ class DrupalMailchimp extends Mailchimp {
       )
     );
 
-    print_r($response);
-
     $result = drupal_json_decode($response->data);
 
     if (!empty($response->error)) {
