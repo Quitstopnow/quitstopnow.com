@@ -501,11 +501,13 @@ function commerce_sp_paypal_form_commerce_paypal_wps_redirect_form_alter(&$form,
           'modify' => FALSE,
         );
 
-        if($product_wrapper->field_commerce_sp_paypal_upfront ->value()){
+        // dpm($product_wrapper->field_commerce_sp_paypal_upfront->amount->value());
+
+        if($product_wrapper->field_commerce_sp_paypal_upfront->value()){
           $paypal_fields = array(
             'cmd' =>'_xclick-subscriptions',
             'item_name' => check_plain($product_wrapper->label()),
-            'a1' => 100,
+            'a1' => ($product_wrapper->field_commerce_sp_paypal_upfront->amount->value() / 100),
             'p1' => 1,
             't1' => 'W',
             'a3' => commerce_currency_amount_to_decimal($order_wrapper->commerce_order_total->amount->value(), $order_wrapper->commerce_order_total->currency_code->value()),

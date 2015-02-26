@@ -45,6 +45,7 @@ function commerce_paypal_wps_default_settings() {
     'server' => 'sandbox',
     'payment_action' => 'sale',
     'ipn_logging' => 'notification',
+    'cart_type' => 'summary',
     'receiver_emails' => '',
     'ipn_create_billing_profile' => FALSE,
     'show_payment_instructions' => FALSE,
@@ -66,6 +67,15 @@ function commerce_paypal_wps_settings_form($settings = array()) {
     '#description' => t('The primary e-mail address of the PayPal account you want to use to receive payments.'),
     '#default_value' => $settings['business'],
     '#required' => TRUE,
+  );
+  $form['cart_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Select the cart options'),
+    '#options' => array(
+      'summary' => t('Send a summary of cart contents as one line item to PayPal.'),
+      'itemized' => t('Send itemized list of cart items to PayPal.'),
+    ),
+    '#default_value' => $settings['cart_type'],
   );
   $form['currency_code'] = array(
     '#type' => 'select',
@@ -414,13 +424,125 @@ function commerce_paypal_wps_order_form($form, &$form_state, $order, $settings) 
   // Ensure a default value for the payment_method setting.
   $settings += array('payment_method' => '');
 
-  // Build the data array that will be translated into hidden form values.
-  $data = array(
-    // Specify the checkout experience to present to the user.
-    'cmd' => '_cart',
+  $order_tax_amount = 0;
+  if (module_exists('commerce_tax')) {
+    $order_price = $wrapper->commerce_order_total->value();
+    $order_tax_amount = commerce_tax_total_amount($order_price['data']['components'], FALSE, $currency_code);
+  }
 
-    // Signify we're passing in a shopping cart from our system.
-    'upload' => 1,
+  if ($settings['cart_type'] == 'itemized') {
+    // If an itemized shopping cart should be sent to PayPal.
+    $wrapper = entity_metadata_wrapper('commerce_order', $order);
+    $count = 1;
+    $shipping_total = 0;
+    $discount_total = 0;
+    foreach ($wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+      $line_item_price = $line_item_wrapper->commerce_unit_price->value();
+      $line_item_amount = commerce_currency_convert($line_item_price['amount'], $currency_code, $line_item_price['currency_code']);
+      $line_item_name = commerce_line_item_title($line_item_wrapper->value());
+
+      // Apply to cart-wide handling_cart if this is a shipping line item.
+      if (module_exists('commerce_shipping') && ($line_item_wrapper->type->value() == 'shipping')) {
+        $shipping_total += commerce_currency_amount_to_decimal($line_item_amount, $currency_code);
+        continue;
+      }
+
+      // Apply to cart-wide discount if this is a negative-value line item.
+      if (commerce_currentcy_amount_to_decimal($line_item_amount, $currency_code) < 0) {
+        $discount_total += abs(commerce_currency_amount_to_decimal($line_item_amount, $currency_code));
+        continue;
+      }
+
+      $data['item_name_' . $count] = empty($line_item_name) ? t('Item @number', array('@number' => $count)) : $line_item_name;
+      $data['item_number_' . $count] = $line_item_wrapper->line_item_label->value();
+      $data['quantity_' . $count] = round($line_item_wrapper->quantity->value());
+      $data['amount_' . $count] = commerce_currency_amount_to_decimal($line_item_amount, $currency_code);
+      $data['shipping_' . $count] = 0;
+
+      // Add product attributes.
+      if (module_exists('commerce_option')) {
+        $product_options = '';
+        $options_count = 0;
+        $iterated_line_item = $line_item_wrapper->value();
+        $options = commerce_option_load_by_line_item($iterated_line_item->line_item_id);
+
+        foreach ($options as $option) {
+          field_attach_prepare_view('commerce_option', array($option->option_id => $option), 'attribute_view');
+          $option_view = field_attach_view('commerce_option', $option, 'attribute_view');
+          $product_options .= check_markup(drupal_render($option_view), 'crop_html');
+          $product_options = explode(':', $product_options);
+          $data['on' . $options_count . '_' . $count] = $product_options[0];
+          $data['os' . $options_count . '_' . $count] = $product_options[1];
+          $options_count++;
+        }
+      }
+
+      $count++;
+    }
+
+    $data['tax_cart'] = round(commerce_currency_amount_to_decimal($order_tax_amount, $currency_code), 2);
+
+    if ($shipping_total > 0) {
+      $data['handling_cart'] = $shipping_total;
+    }
+    if ($discount_total > 0) {
+      $data['discount_amount_cart'] = $discount_total;
+    }
+  } else {
+    // Define a single item in the cart representing the whole order.
+    $order_amount = commerce_currency_convert($amount, $order_currency_code, $currency_code);
+
+    $order_shipping_amount = 0;
+    if (module_exists('commerce_shipping')) {
+      foreach ($wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+        if ($line_item_wrapper->type->value() == 'shipping') {
+          $line_item_price = $line_item_wrapper->commerce_unit_price->value();
+          $line_item_amount = commerce_currency_amount_to_decimal(commerce_currency_convert($line_item_price['amount'], $line_item_price['currency_code'], $currency_code), $currency_code);
+          $order_shipping_amount += $line_item_amount;
+        }
+      }
+    }
+
+    $data = array(
+      'amount' => commerce_currency_amount_to_decimal($order_amount - $order_tax_amount - $order_shipping_amount, $currency_code),
+      'shipping' => commerce_currency_amount_to_decimal($order_shipping_amount, $currency_code),
+      'tax' => commerce_currency_amount_to_decimal($order_tax_amount, $currency_code),
+      'item_name' => t('Order @order_number at @store', array('@order_number' => $order->order_number, '@store' => variable_get('site_name', url('<front>', array('absolute' => TRUE))))),
+      'on0' => t('Product count'),
+      'os0' => commerce_line_items_quantity($wrapper->commerce_line_items, commerce_product_line_item_types()),
+    );
+  }
+
+  // Pass billing information to Paypal if we collected it.
+  if ($wrapper->commerce_customer_billing->value()) {
+    $paypal_address = $wrapper->commerce_customer_billing->commerce_customer_address->value();
+
+    if (!$paypal_address['first_name'] && !$paypal_address['last_name']) {
+      $names = explode(' ', $paypal_address['name_line']);
+      $paypal_address['first_name'] = $names[0];
+      if (isset($names[1])) {
+        $paypal_address['last_name'] = $names[1];
+      }
+    }
+
+    $data['first_name'] = $paypal_address['first_name'];
+    $data['last_name'] = $paypal_address['last_name'];
+    $data['address1'] = $paypal_address['thoroughfare'];
+    $data['address2'] = $paypal_address['premise'];
+    $data['city'] = $paypal_address['locality'];
+    $data['state'] = $paypal_address['administrative_area'];
+    $data['zip'] = $paypal_address['postal_code'];
+    $data['country'] = $paypal_address['country'];
+    $data['email'] = $wrapper->mail->value();
+  }
+
+  // Build the data array that will be translated into hidden form values.
+  $data = (array) $data + array(
+    // Specify the checkout experience to present to the user.
+    'cmd' => ($settings['cart_type'] == 'itemized') ? '_cart' : '_xclick',
+
+    // Signify if we're passing in a shopping cart from our system.
+    'upload' => ($settings['cart_type'] == 'itemized') ? 1 : 0,
 
     // The store's PayPal e-mail address
     'business' => $settings['business'],
@@ -457,13 +579,7 @@ function commerce_paypal_wps_order_form($form, &$form_state, $order, $settings) 
     'lc' => $settings['language'],
 
     // Use the timestamp to generate a unique invoice number
-    'invoice' => commerce_paypal_ipn_invoice($order),
-
-    // Define a single item in the cart representing the whole order
-    'amount_1' => commerce_paypal_price_amount(commerce_currency_convert($amount, $order_currency_code, $currency_code), $currency_code),
-    'item_name_1' => t('Order @order_number at @store', array('@order_number' => $order->order_number, '@store' => variable_get('site_name', url('<front>', array('absolute' => TRUE))))),
-    'on0_1' => t('Product count'),
-    'os0_1' => commerce_line_items_quantity($wrapper->commerce_line_items, commerce_product_line_item_types()),
+    'invoice' => commerce_paypal_ipn_invoice($order)
   );
 
   // Allow modules to alter parameters of the API request.
@@ -472,9 +588,7 @@ function commerce_paypal_wps_order_form($form, &$form_state, $order, $settings) 
   $form['#action'] = commerce_paypal_wps_server_url($settings['server']);
 
   foreach ($data as $name => $value) {
-    if (!empty($value)) {
-      $form[$name] = array('#type' => 'hidden', '#value' => $value);
-    }
+    $form[$name] = array('#type' => 'hidden', '#value' => $value);
   }
 
   $form['submit'] = array(
