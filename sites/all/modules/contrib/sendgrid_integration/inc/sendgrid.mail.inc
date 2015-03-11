@@ -35,9 +35,12 @@ class SendGridMailSystem implements MailSystemInterface {
     // Defining default unique args.
     $unique_args = array(
       'id' => $message['id'],
-      'uid' => $message['params']['account']->uid,
       'module' => $message['module'],
     );
+
+    if (isset($message['params']['account']->uid)) {
+      $unique_args['uid'] = $message['params']['account']->uid;
+    }
 
     // Allow other modules to modify unique arguments.
     $args = module_invoke_all('sendgrid_integration_unique_args_alter', $unique_args);
@@ -53,18 +56,28 @@ class SendGridMailSystem implements MailSystemInterface {
       'unique_args' => $unique_args,
     );
 
+    $parsed_to = sendgrid_integration_get_to($message['to']);
+    $to_emails = $parsed_to['emails'];
+    $to_names = $parsed_to['names'];
+
     // Data sended to sendgrid.
     $data = array(
       'api_user' => $user,
       'api_key' => $key,
       'x-smtpapi' => drupal_json_encode($smtp_api),
-      'to' => $message['to'],
+      'to' => $to_emails,
       'subject' => $message['subject'],
     );
 
+    if (!empty($to_names)) {
+      $data['toname'] = $to_names;
+    }
+
     // Checking if 'from' email-address already exist.
     if (isset($message['from'])) {
-      $data['from'] = $message['from'];
+      list($from_address, $from_name) = sendgrid_integration_parse_address($message['from']);
+      $data['from'] = $from_address;
+      $data['fromname'] = $from_name;
     }
     else {
       $data['from'] = variable_get('site_mail');
@@ -83,7 +96,7 @@ class SendGridMailSystem implements MailSystemInterface {
     // Options for drupal_http_request.
     $options = array(
       'method' => 'POST',
-      'data' => http_build_query($data),
+      'data' => preg_replace('/\[\d+\]/', '%5B%5D', drupal_http_build_query($data)),
       'timeout' => 10,
       'headers' => array(
         'Content-Type' => 'application/x-www-form-urlencoded',
